@@ -1,0 +1,17 @@
+"use client"
+
+import { useObserveBalance } from "@/providers/balance-provider";
+import { useInitAndPollSyncState } from "@/providers/sdk-provider";
+
+/**
+ * This component handles all background processes that need to run continuously.
+ * It's isolated so that its internal state updates don't cause parent components to re-render.
+ */
+export function BackgroundProcesses() {
+    useInitAndPollSyncState();
+    useObserveBalance()
+
+    // This component renders nothing but handles all background processes
+    return null;
+}
+
