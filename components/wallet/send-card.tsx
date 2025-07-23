@@ -115,7 +115,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                         <label className="text-sm font-medium text-foreground">Recipient</label>
                         <div className="flex gap-2">
                             <Input
-                                placeholder="0x... or scan Aztec"
+                                placeholder="0x..."
                                 value={recipient}
                                 onChange={(e) => setRecipient(e.target.value)}
                                 className="font-mono text-sm h-10 flex-1"
@@ -124,7 +124,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                                 variant="outline"
                                 size="sm"
                                 className="h-10 w-10 p-0 flex-shrink-0"
-                                title="Scan Aztec Code"
+                                title=""
                             >
                                 <Camera className="h-4 w-4" />
                             </Button>
