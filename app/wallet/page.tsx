@@ -17,7 +17,7 @@ export default function WalletInterface() {
     const [toShow, setToShow] = useState<toShowType>("activity")
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-background flex justify-center px-4 py-4 md:px-6 md:py-6">
+            <div className="min-h-screen bg-background flex justify-center px-4 md:px-6 md:py-6">
                 <Card className="w-full max-w-md bg-card border-border">
                     <CardContent className="p-6 space-y-6">
                         <div className="text-center space-y-4">

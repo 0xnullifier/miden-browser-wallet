@@ -136,7 +136,7 @@ export const useWebRtc = () => {
             };
         }
 
-    }, [account])
+    }, [account, setWebSocket, setPeerConnection, setDataChannel]);
 
 }
 

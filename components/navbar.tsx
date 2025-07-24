@@ -12,7 +12,7 @@ export function Navbar() {
         <header className="w-full">
             <div className="max-w-[1200px] mx-auto px-4 py-4 md:px-6 md:py-6">
                 {/* Mobile Layout */}
-                <div className="flex flex-col gap-4 md:hidden">
+                <div className="flex flex-col gap-4 sm:hidden">
                     {/* Top row with block info and mode toggle */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-400/30 rounded-full min-w-[120px] justify-start">
@@ -61,7 +61,7 @@ export function Navbar() {
                 </div>
 
                 {/* Desktop Layout */}
-                <div className="hidden md:block">
+                <div className="hidden sm:block">
                     <div className="relative flex items-center h-[48px]">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-400/30 rounded-full min-w-[120px] justify-start">
                             <div className="flex items-center justify-center w-[14px] h-[14px]">

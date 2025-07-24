@@ -75,6 +75,33 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
     }
 
+    const processTxAfterConnection = async () => {
+        if (!client || !account) return;
+
+        try {
+            const tx = await send(client, account, recipient, BigInt(amount), isPrivate)
+            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
+
+            if (isPrivate) {
+                const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
+                await new Promise((resolve) => setTimeout(resolve, 10000));
+                const exportedNote = await client.exportNote(outputNote.toString(), "Full")
+                setNoteBytes(exportedNote)
+                setTx(tx)
+            } else {
+                setLoading(false)
+                setAmount("")
+                setRecipient("")
+            }
+        } catch (error) {
+            console.error("Error sending transaction:", error);
+            toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
+            setLoading(false)
+            setAmount("")
+            setRecipient("")
+        }
+    }
+
     useEffect(() => {
         const initializeClient = async () => {
             const { WebClient } = await import("@demox-labs/miden-sdk");
@@ -85,20 +112,27 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     }, [])
 
     useEffect(() => {
-        if (stage === "pongreceived" && noteBytes && dc && dc.readyState === "open") {
-            if (retryingDialog) {
-                setRetryingDialog(false)
-                setRetryNumber(0)
-                setRetryNow(false)
-                if (retryIntervalId) {
-                    clearInterval(retryIntervalId)
-                    setRetryIntervalId(null)
-                }
-            }
+        // Only send note bytes if we're connected and not going offline
+        if (stage === "pongreceived" && noteBytes && dc && dc.readyState === "open" && !doItAsync) {
+            console.log("Sending note bytes through data channel...")
             dc.send(JSON.stringify({
                 type: MESSAGE_TYPE.NOTE_BYTES,
                 bytes: Array.from(noteBytes),
             }))
+        }
+
+        // If we have note bytes but should go offline (doItAsync=true), create the link
+        if (noteBytes && doItAsync) {
+            console.log("Creating offline link for note...")
+            const base64Note = btoa(String.fromCharCode(...noteBytes))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+            setBase64NoteStr(base64Note)
+            setReceiverOfflineDialog(true)
+            setLoading(false)
+            setRecipient("")
+            setAmount("")
         }
 
         if (stage === "noteReceivedAck" && dc && dc.readyState === "open") {
@@ -113,7 +147,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             console.log("Private note received acknowledgment");
         }
 
-    }, [stage, dc, noteBytes, retryingDialog, retryIntervalId, pc, setDataChannel])
+    }, [stage, dc, noteBytes, doItAsync, pc, setDataChannel])
 
     useEffect(() => {
         console.log("Stage changed:", stage)
@@ -130,7 +164,21 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             }, 10000)
             setRetryIntervalId(intervalId)
         }
-    }, [stage,])
+
+        // When connection is established (pongreceived), process the transaction
+        if (stage === "pongreceived" && !noteBytes && !tx) {
+            console.log("Connection established, processing transaction...")
+            if (retryingDialog) {
+                setRetryingDialog(false)
+                setRetryNumber(0)
+                if (retryIntervalId) {
+                    clearInterval(retryIntervalId)
+                    setRetryIntervalId(null)
+                }
+            }
+            processTxAfterConnection()
+        }
+    }, [stage, doItAsync, retryingDialog, retryNumber, noteBytes, tx, retryIntervalId])
 
     // Cleanup interval on unmount
     useEffect(() => {
@@ -150,20 +198,23 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             }
             setRetryingDialog(false)
 
-            if (noteBytes) {
+            // If user chose to continue offline or retries failed, process transaction
+            if (!noteBytes && !tx) {
+                processTxAfterConnection()
+            } else if (noteBytes) {
+                // If transaction already processed, create the offline link
                 const base64Note = btoa(String.fromCharCode(...noteBytes))
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
                     .replace(/=+$/, '');
                 setBase64NoteStr(base64Note)
+                setReceiverOfflineDialog(true)
+                setLoading(false)
+                setRecipient("")
+                setAmount("")
             }
-
-            setReceiverOfflineDialog(true)
-            setLoading(false)
-            setRecipient("")
-            setAmount("")
         }
-    }, [retryNumber, doItAsync, stage, noteBytes, retryIntervalId])
+    }, [retryNumber, doItAsync, stage, noteBytes, retryIntervalId, tx])
 
 
     const onSend = async () => {
@@ -181,23 +232,22 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             return;
         }
 
+        // For private payments, try WebSocket connection first
+        if (isPrivate) {
+            toast.info("Establishing connection for private note transfer...", { position: "top-right" })
+            setStage("webrtcStarted")
+            await createOffer()
+            // Don't proceed with transaction yet - wait for connection or user decision
+            return;
+        }
+
+        // For non-private payments, proceed directly
         try {
             const tx = await send(client, account, recipient, BigInt(amount), isPrivate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
-
-            if (isPrivate) {
-                toast.info("Starting WebRTC connection for private note transfer...", { position: "top-right" })
-                setStage("webrtcStarted")
-                await createOffer()
-                await new Promise((resolve) => setTimeout(resolve, 10000))
-                const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
-                const exportedNote = await client.exportNote(outputNote.toString(), "Full")
-                setNoteBytes(exportedNote)
-            } else {
-                setLoading(false)
-                setAmount("")
-                setRecipient("")
-            }
+            setLoading(false)
+            setAmount("")
+            setRecipient("")
         } catch (error) {
             console.error("Error sending transaction:", error);
             toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
