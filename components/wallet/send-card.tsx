@@ -139,9 +139,6 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             setLoading(false)
             setAmount("")
             setRecipient("")
-            if (pc) {
-                pc.close()
-            }
             dc.close()
             setDataChannel(null)
             console.log("Private note received acknowledgment");
