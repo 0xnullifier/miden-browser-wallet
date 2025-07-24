@@ -2,6 +2,7 @@
 
 import { RPC_ENDPOINT, WEBSOCKET_URL } from "@/lib/constants";
 import { MESSAGE_TYPE, SendPrivateNoteStages, WEBRTC_MESSAGE_TYPE } from "@/lib/types";
+import { useBalanceStore } from "@/providers/balance-provider";
 import { useReceiverRef } from "@/providers/receiver-provider";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
 import { useWebRtcStore } from "@/providers/webrtc-provider";
@@ -16,6 +17,7 @@ export const useWebRtc = () => {
     const setDataChannel = useWebRtcStore((state) => state.setDataChannel);
     const setPeerConnection = useWebRtcStore((state) => state.setPeerConnection);
     const setStage = useWebRtcStore((state) => state.setPrivateNoteStage);
+
     useEffect(() => {
         if (account) {
             const ws = new WebSocket(WEBSOCKET_URL);
@@ -96,19 +98,22 @@ export const useWebRtc = () => {
                 }
             }
             pc.onicecandidate = (event) => {
-                console.log("ICE candidate event:", event);
-                if (event.candidate) {
-                    ws.send(JSON.stringify({
-                        type: WEBRTC_MESSAGE_TYPE.FORWARD_ICE_CANDIDATE,
-                        candidate: event.candidate,
-                        to: receiverRef.current,
-                    }));
-                } else {
-                    ws.send(JSON.stringify({
-                        type: WEBRTC_MESSAGE_TYPE.FORWARD_ICE_CANDIDATE,
-                        candidate: null,
-                        to: receiverRef.current,
-                    }));
+                try {
+                    if (event.candidate) {
+                        ws.send(JSON.stringify({
+                            type: WEBRTC_MESSAGE_TYPE.FORWARD_ICE_CANDIDATE,
+                            candidate: event.candidate,
+                            to: receiverRef.current,
+                        }));
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: WEBRTC_MESSAGE_TYPE.FORWARD_ICE_CANDIDATE,
+                            candidate: null,
+                            to: receiverRef.current,
+                        }));
+                    }
+                } catch (error: any) {
+
                 }
             }
 
@@ -126,7 +131,6 @@ export const useWebRtc = () => {
             setPeerConnection(pc);
             setWebSocket(ws);
 
-            // Cleanup function
             return () => {
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.close();
@@ -136,7 +140,7 @@ export const useWebRtc = () => {
             };
         }
 
-    }, [account, setWebSocket, setPeerConnection, setDataChannel]);
+    }, [account]);
 
 }
 
