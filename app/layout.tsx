@@ -8,6 +8,8 @@ import { BackgroundProcesses } from "@/components/background-process";
 import { BalanceProvider } from "@/providers/balance-provider";
 import { TransactionProviderC } from "@/providers/transaction-provider";
 import { Toaster } from "sonner";
+import { WebRtcProvider } from "@/providers/webrtc-provider";
+import { ReceiverProvider } from "@/providers/receiver-provider";
 
 const geistSans = Inter({
   variable: "--font-sans",
@@ -42,10 +44,14 @@ export default function RootLayout({
           <MidenSdkProvider>
             <BalanceProvider>
               <TransactionProviderC>
-                <BackgroundProcesses />
-                <Navbar />
-                {children}
-                <Toaster />
+                <WebRtcProvider>
+                  <ReceiverProvider>
+                    <BackgroundProcesses />
+                    <Navbar />
+                    {children}
+                    <Toaster />
+                  </ReceiverProvider>
+                </WebRtcProvider>
               </TransactionProviderC>
             </BalanceProvider>
           </MidenSdkProvider>

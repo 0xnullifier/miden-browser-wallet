@@ -1,5 +1,6 @@
 "use client"
 
+import { useWebRtc } from "@/hooks/useWebRtc";
 import { useObserveBalance } from "@/providers/balance-provider";
 import { useInitAndPollSyncState } from "@/providers/sdk-provider";
 
@@ -10,6 +11,7 @@ import { useInitAndPollSyncState } from "@/providers/sdk-provider";
 export function BackgroundProcesses() {
     useInitAndPollSyncState();
     useObserveBalance()
+    useWebRtc();
 
     // This component renders nothing but handles all background processes
     return null;

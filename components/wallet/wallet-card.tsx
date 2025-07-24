@@ -7,7 +7,7 @@ import { Button } from "../ui/button"
 import { Activity, Droplets, MoreHorizontal, QrCode, Send } from "lucide-react"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
-export type toShowType = "send" | "activity" | "recieve" | "faucet"
+export type toShowType = "send" | "activity" | "receive" | "faucet"
 
 interface WalletCardProps {
     setToShow: (view: toShowType) => void
@@ -84,7 +84,7 @@ export function WalletCard({ setToShow }: WalletCardProps) {
                         <Button
                             variant="secondary"
                             className="rounded-full bg-orange-500 hover:bg-orange-600 dark:bg-primary dark:hover:bg-primary/90 p-0 h-12 w-12 sm:h-14 sm:w-14 flex items-center justify-center"
-                            onClick={() => setToShow("recieve")}
+                            onClick={() => setToShow("receive")}
                         >
                             <QrCode className="h-4 w-4 sm:h-5 sm:w-5 text-white dark:text-primary-foreground" />
                         </Button>

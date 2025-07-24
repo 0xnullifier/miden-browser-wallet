@@ -7,7 +7,7 @@ import { SendCard } from "@/components/wallet/send-card"
 import { ActivityCardList } from "@/components/wallet/activity-card"
 import { toShowType, WalletCard } from "@/components/wallet/wallet-card"
 import { Faucet } from "@/components/wallet/faucet-card"
-import { RecieveCard } from "@/components/wallet/receve-card"
+import { ReceiveCard } from "@/components/wallet/receve-card"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { toast } from "sonner"
 
@@ -71,10 +71,10 @@ export default function WalletInterface() {
                             </div>
                         </div>
                     )}
-                    {toShow === "recieve" && (
+                    {toShow === "receive" && (
                         <div className="flex justify-center w-full pt-3">
                             <div className="w-full max-w-[400px]">
-                                <RecieveCard onClose={() => setToShow("activity")} />
+                                <ReceiveCard onClose={() => setToShow("activity")} />
                             </div>
                         </div>
                     )}

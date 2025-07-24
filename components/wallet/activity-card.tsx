@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RPC_ENDPOINT } from "@/lib/constants"
 import { UITransaction } from "@/store/transaction"
+import { useTheme } from "../ui/theme-provider"
 
 
 
@@ -46,7 +47,7 @@ function getTransactionIcon(type: UITransaction["type"], status: UITransaction["
 function getTransactionLabel(type: UITransaction["type"]): string {
     switch (type) {
         case "Outgoing":
-            return "Transfer"
+            return "Sent"
         case "Incoming":
             return "Received"
         case "Faucet":
@@ -76,15 +77,14 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
     const isNegative = type === "Outgoing"
     const formattedAmount = formatAmount(amount)
     const displayAmount = isNegative ? `-${formattedAmount}` : `+${formattedAmount}`
-
     return (
         <Card className="">
             <CardContent className="flex items-center gap-4">
                 <div className="flex-shrink-0">{getTransactionIcon(type, status)}</div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="text-white font-medium ">{getTransactionLabel(type)}</div>
-                    <div className="text-gray-400 text-sm font-mono">{timestamp}</div>
+                    <div className="text-foreground font-medium">{getTransactionLabel(type)}</div>
+                    <div className="text-muted-foreground text-sm font-mono">{timestamp}</div>
                 </div>
 
                 <div className={cn("font-light", getAmountColor(type, status))}>{displayAmount}</div>
@@ -117,7 +117,9 @@ export function ActivityCardList() {
         const fetchTransactions = async () => {
             try {
                 const { TransactionFilter, NoteFilter, NoteFilterTypes } = await import("@demox-labs/miden-sdk");
+                ///@ts-ignore
                 const transactionReacords = (await client.getTransactions(TransactionFilter.all())).filter((tx: any) => tx.accountId().toString() === account);
+                ///@ts-ignore
                 const inputNotes = (await client.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
                 await loadTransactions(transactionReacords, inputNotes)
             } catch (error) {

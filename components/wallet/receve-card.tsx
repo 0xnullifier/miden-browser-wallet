@@ -8,7 +8,7 @@ import { X, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMidenSdkStore } from '@/providers/sdk-provider';
 
-export const RecieveCard = ({ onClose }: { onClose?: () => void }) => {
+export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
     const [copied, setCopied] = useState(false);
 
     const walletAddress = useMidenSdkStore((state) => state.account);

@@ -5,3 +5,4 @@ export const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443";
 export const FAUCET_API_ENDPOINT = (address: string, amount: string) => `https://faucet.zeroleaks.xyz/mint/${address}/${amount}`
 export const EXPLORER_URL = (txId: string) => `https://testnet.midenscan.com/tx/${txId}`
 export const BASE_URL = typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "http://localhost:5173"
+export const WEBSOCKET_URL = "ws://localhost:8080/ws";

@@ -12,7 +12,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { BASE_URL, RPC_ENDPOINT, } from "@/lib/constants"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { useBalanceStore } from "@/providers/balance-provider"
-
+import { useWebRtcStore } from "@/providers/webrtc-provider"
+import { useReceiverRef } from "@/providers/receiver-provider"
+import { MESSAGE_TYPE, WEBRTC_MESSAGE_TYPE } from "@/lib/types"
+import { toast } from "sonner"
+import { Alert } from "../ui/alert"
 
 // Send Card Component
 export function SendCard({ onClose }: { onClose: () => void }) {
@@ -25,8 +29,51 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const [copied, setCopied] = useState(false)
     const account = useMidenSdkStore((state) => state.account)
     const balance = useBalanceStore((state) => state.balance)
-    const [dialogOpen, setDialogOpen] = useState(false)
+    const [receiverOfflineDialogOpen, setReceiverOfflineDialog] = useState(false)
     const [client, setClient] = useState<any | null>(null)
+
+    const [retryNumber, setRetryNumber] = useState<number>(0)
+    const [retryingDialog, setRetryingDialog] = useState(false)
+    const [retryNow, setRetryNow] = useState(false)
+    const [retryIntervalId, setRetryIntervalId] = useState<NodeJS.Timeout | null>(null)
+    const [doItAsync, setDoItAsync] = useState(false)
+
+    const ws = useWebRtcStore((state) => state.webSocket);
+    const dc = useWebRtcStore((state) => state.dataChannel);
+    const pc = useWebRtcStore((state) => state.peerConnection);
+    const stage = useWebRtcStore((state) => state.stage);
+    const setStage = useWebRtcStore((state) => state.setPrivateNoteStage);
+    const setDataChannel = useWebRtcStore((state) => state.setDataChannel);
+
+
+    const receiverRef = useReceiverRef()
+    const [noteBytes, setNoteBytes] = useState<Array<number> | null>(null)
+    const [tx, setTx] = useState<any | null>(null)
+
+
+    useEffect(() => {
+        receiverRef.current = recipient;
+        console.log("Receiver reference updated:", receiverRef.current);
+    }, [recipient])
+
+    const createOffer = async () => {
+        if (ws && pc) {
+            try {
+                const offer = await pc.createOffer()
+                await pc.setLocalDescription(offer);
+                ws.send(JSON.stringify({ type: WEBRTC_MESSAGE_TYPE.CREATE_OFFER, offer: offer, to: recipient, from: account }))
+            } catch (error) {
+                console.error("Error creating offer:", error);
+                toast.error("Failed to create WebRTC offer: " + (error instanceof Error ? error.message : "Unknown error"))
+                setLoading(false)
+                setAmount("")
+                setRecipient("")
+                setReceiverOfflineDialog(true)
+            }
+        } else {
+            console.error("WebSocket or PeerConnection not initialized");
+        }
+    }
 
     useEffect(() => {
         const initializeClient = async () => {
@@ -37,36 +84,127 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         initializeClient();
     }, [])
 
-
-    const onSend = async () => {
-        setLoading(true)
-        if (!account) {
-            console.error("No account or client found for sending payment");
-            setLoading(false)
-            return;
+    useEffect(() => {
+        if (stage === "pongreceived" && noteBytes && dc && dc.readyState === "open") {
+            if (retryingDialog) {
+                setRetryingDialog(false)
+                setRetryNumber(0)
+                setRetryNow(false)
+                if (retryIntervalId) {
+                    clearInterval(retryIntervalId)
+                    setRetryIntervalId(null)
+                }
+            }
+            dc.send(JSON.stringify({
+                type: MESSAGE_TYPE.NOTE_BYTES,
+                bytes: Array.from(noteBytes),
+            }))
         }
-        try {
-            const tx = await send(client, account, recipient, BigInt(amount), isPrivate)
-            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
-            if (isPrivate) {
-                await new Promise((resolve) => setTimeout(resolve, 10000))
-                const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
-                const noteBytes = new Uint8Array(await client.exportNote(outputNote.toString(), "Full"))
+
+        if (stage === "noteReceivedAck" && dc && dc.readyState === "open") {
+            setLoading(false)
+            setAmount("")
+            setRecipient("")
+            if (pc) {
+                pc.close()
+            }
+            dc.close()
+            setDataChannel(null)
+            console.log("Private note received acknowledgment");
+        }
+
+    }, [stage, dc, noteBytes, retryingDialog, retryIntervalId, pc, setDataChannel])
+
+    useEffect(() => {
+        console.log("Stage changed:", stage)
+        if (stage === "receiver-offline" && !doItAsync && !retryingDialog && retryNumber === 0) {
+            console.log("Receiver is offline, starting retry mechanism")
+            if (retryIntervalId) {
+                clearInterval(retryIntervalId)
+            }
+            setRetryingDialog(true)
+            const intervalId = setInterval(async () => {
+                console.log("Retrying connection...")
+                await createOffer()
+                setRetryNumber(prev => prev + 1)
+            }, 10000)
+            setRetryIntervalId(intervalId)
+        }
+    }, [stage,])
+
+    // Cleanup interval on unmount
+    useEffect(() => {
+        return () => {
+            if (retryIntervalId) {
+                clearInterval(retryIntervalId)
+            }
+        }
+    }, [retryIntervalId])
+
+    useEffect(() => {
+        if (stage === "receiver-offline" && (retryNumber > 2 || doItAsync)) {
+            console.log("Retrying connection failed or user chose to continue offline")
+            if (retryIntervalId) {
+                clearInterval(retryIntervalId)
+                setRetryIntervalId(null)
+            }
+            setRetryingDialog(false)
+
+            if (noteBytes) {
                 const base64Note = btoa(String.fromCharCode(...noteBytes))
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
                     .replace(/=+$/, '');
                 setBase64NoteStr(base64Note)
-                setDialogOpen(true)
+            }
+
+            setReceiverOfflineDialog(true)
+            setLoading(false)
+            setRecipient("")
+            setAmount("")
+        }
+    }, [retryNumber, doItAsync, stage, noteBytes, retryIntervalId])
+
+
+    const onSend = async () => {
+        setLoading(true)
+        if (!account || !client) {
+            console.error("No account or client found for sending payment");
+            setLoading(false)
+            return;
+        }
+
+        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+            console.error("Invalid amount");
+            toast.error("Please enter a valid amount");
+            setLoading(false)
+            return;
+        }
+
+        try {
+            const tx = await send(client, account, recipient, BigInt(amount), isPrivate)
+            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
+
+            if (isPrivate) {
+                toast.info("Starting WebRTC connection for private note transfer...", { position: "top-right" })
+                setStage("webrtcStarted")
+                await createOffer()
+                await new Promise((resolve) => setTimeout(resolve, 10000))
+                const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
+                const exportedNote = await client.exportNote(outputNote.toString(), "Full")
+                setNoteBytes(exportedNote)
+            } else {
+                setLoading(false)
+                setAmount("")
+                setRecipient("")
             }
         } catch (error) {
             console.error("Error sending transaction:", error);
-        } finally {
+            toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
             setLoading(false)
+            setAmount("")
+            setRecipient("")
         }
-        setAmount("")
-        setRecipient("")
-
     }
 
     const copyToClipboard = async (text: string) => {
@@ -79,7 +217,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
     }
 
-    const receiveLink = base64NoteStr ? `${BASE_URL}/recieve?note=${base64NoteStr}` : ""
+    const receiveLink = base64NoteStr ? `${BASE_URL}/receive?note=${base64NoteStr}` : ""
 
 
     return (
@@ -96,7 +234,13 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                                 pattern="^[0-9]*[.,]?[0-9]*$"
                                 placeholder="0.00"
                                 value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // Allow only numbers and decimal point
+                                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                        setAmount(value);
+                                    }
+                                }}
                                 className="text-base h-10 flex-1 pr-16"
                             />
                             <button
@@ -153,7 +297,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                     {/* Send Button */}
                     <Button
                         className="w-full h-10 text-sm font-medium"
-                        disabled={!amount || !recipient || loading}
+                        disabled={!amount || !recipient || loading || !client || isNaN(Number(amount)) || Number(amount) <= 0}
                         onClick={onSend}
                     >
                         {loading ? (
@@ -168,38 +312,66 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                 </CardContent>
             </Card>
 
-            {/* Private Note Dialog */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            {/* Retrying Connection Dialog */}
+            <Dialog open={retryingDialog} onOpenChange={setRetryingDialog}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Private Note Generated</DialogTitle>
+                        <DialogTitle>Connecting to Receiver</DialogTitle>
                         <DialogDescription>
-                            Your private note has been generated successfully. You can share it with the recipient.
+                            Attempting to establish connection for private note transfer...
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            <div className="text-sm text-muted-foreground">
+                                Retry attempt {retryNumber} of 3
+                            </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            This may take a few moments while we try to reach the recipient.
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDoItAsync(true)
+                            }}
+                        >
+                            Continue Offline
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Private Note Dialog */}
+            <Dialog open={receiverOfflineDialogOpen} onOpenChange={setReceiverOfflineDialog}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Private Note Generated</DialogTitle>
+
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        Receiver is offline. Please share the link below with them to complete the private payment.
                         <div className="flex items-center gap-2">
                             <Input
                                 readOnly
-                                value={base64NoteStr || ""}
+                                value={receiveLink}
                                 className="flex-1"
                             />
                             <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => copyToClipboard(base64NoteStr || "")}
+                                onClick={() => copyToClipboard(receiveLink || "")}
                             >
                                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                             </Button>
                         </div>
-                        {receiveLink && (
-                            <a href={receiveLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                Open Receive Link
-                            </a>
-                        )}
+
                     </div>
                     <DialogFooter>
-                        <Button variant="secondary" onClick={() => setDialogOpen(false)}>
+                        <Button variant="secondary" onClick={() => setReceiverOfflineDialog(false)}>
                             Close
                         </Button>
                     </DialogFooter>
