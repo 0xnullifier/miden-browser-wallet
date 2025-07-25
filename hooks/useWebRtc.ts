@@ -1,5 +1,6 @@
 "use client";
 
+import { importPrivateNote } from "@/lib/actions";
 import { RPC_ENDPOINT, WEBSOCKET_URL } from "@/lib/constants";
 import { MESSAGE_TYPE, SendPrivateNoteStages, WEBRTC_MESSAGE_TYPE } from "@/lib/types";
 import { useBalanceStore } from "@/providers/balance-provider";
@@ -44,7 +45,7 @@ export const useWebRtc = () => {
             const dc = pc.createDataChannel("privateNoteChannel");
 
             dc.onopen = () => {
-                if (receiverRef.current !== account) {
+                if (receiverRef.current !== account && receiverRef.current) {
                     dc.send(JSON.stringify({ type: "PING" }));
                     setStage("pingsent")
                 }
@@ -216,31 +217,15 @@ const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataCha
             break;
         case MESSAGE_TYPE.NOTE_BYTES:
             try {
-                const { WebClient } = await import("@demox-labs/miden-sdk")
-                const client = await WebClient.createClient(RPC_ENDPOINT)
-                toast.promise(client.importNote(message.bytes), {
-                    position: "top-right",
-                    loading: "Processing private note bytes...",
-                    success: async (data) => {
-                        console.log("Private note bytes processed successfully:", data);
-                        await new Promise<void>((resolve) => setTimeout(resolve, 5000));
-                        dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
-                        setStage("noteReceived")
-                        toggleReset()
-                        return "Private note received successfully";
-                    },
-                    error: (error) => {
-                        console.error("Failed to process private note bytes:", error);
-                        dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
-                        setStage("noteReceived")
-                        toggleReset()
-                        return "Failed to process private note bytes"
-                    }
-                })
-
+                importPrivateNote(message.bytes)
+                dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
+                setStage("noteReceived")
             } catch (error) {
                 console.error("Error processing note bytes:", error);
+                dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECIEVED_BUT_IMPORT_ERROR }))
                 toast.error("Failed to process private note bytes");
+            } finally {
+                toggleReset()
             }
             break;
         case MESSAGE_TYPE.NOTE_RECEIVED_ACK:

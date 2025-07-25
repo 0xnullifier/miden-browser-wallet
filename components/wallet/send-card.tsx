@@ -4,9 +4,9 @@ import { Camera, Loader2, Copy, Check } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
 import { Input } from "../ui/input"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Switch } from "@/components/ui/switch"
-import { send } from "@/lib/action"
+import { send } from "@/lib/actions"
 import { sucessTxToast } from "@/components/success-tsx-toast"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { BASE_URL, RPC_ENDPOINT, } from "@/lib/constants"
@@ -16,7 +16,7 @@ import { useWebRtcStore } from "@/providers/webrtc-provider"
 import { useReceiverRef } from "@/providers/receiver-provider"
 import { MESSAGE_TYPE, WEBRTC_MESSAGE_TYPE } from "@/lib/types"
 import { toast } from "sonner"
-import { Alert } from "../ui/alert"
+
 
 // Send Card Component
 export function SendCard({ onClose }: { onClose: () => void }) {
@@ -30,8 +30,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const account = useMidenSdkStore((state) => state.account)
     const balance = useBalanceStore((state) => state.balance)
     const [receiverOfflineDialogOpen, setReceiverOfflineDialog] = useState(false)
-    const [client, setClient] = useState<any | null>(null)
-
+    const clientRef = useRef<any | null>(null);
     const [retryNumber, setRetryNumber] = useState<number>(0)
     const [retryingDialog, setRetryingDialog] = useState(false)
     const [retryNow, setRetryNow] = useState(false)
@@ -76,16 +75,21 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     }
 
     const processTxAfterConnection = async () => {
-        if (!client || !account) return;
+        if (!account) return;
+
+        if (!clientRef.current) {
+            console.error("Miden SDK client not initialized for sending transaction");
+        }
 
         try {
-            const tx = await send(client, account, recipient, BigInt(amount), isPrivate)
+            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
 
             if (isPrivate) {
                 const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
+                // wait 10 seconds for the tx to be commited
                 await new Promise((resolve) => setTimeout(resolve, 10000));
-                const exportedNote = await client.exportNote(outputNote.toString(), "Full")
+                const exportedNote = await clientRef.current.exportNote(outputNote.toString(), "Full")
                 setNoteBytes(exportedNote)
                 setTx(tx)
             } else {
@@ -99,17 +103,14 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             setLoading(false)
             setAmount("")
             setRecipient("")
+        } finally {
+            if (clientRef.current) {
+                clientRef.current.terminate()
+                clientRef.current = null
+            }
         }
     }
 
-    useEffect(() => {
-        const initializeClient = async () => {
-            const { WebClient } = await import("@demox-labs/miden-sdk");
-            const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
-            setClient(clientInstance);
-        }
-        initializeClient();
-    }, [])
 
     useEffect(() => {
         // Only send note bytes if we're connected and not going offline
@@ -220,7 +221,17 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
     const onSend = async () => {
         setLoading(true)
-        if (!account || !client) {
+        const { WebClient } = await import("@demox-labs/miden-sdk");
+        clientRef.current = await WebClient.createClient(RPC_ENDPOINT)
+        if (recipient === account) {
+            toast.error("You cannot send payment to yourself")
+            setLoading(false)
+            setRecipient("")
+            return;
+        }
+
+
+        if (!account || !clientRef.current) {
             console.error("No account or client found for sending payment");
             setLoading(false)
             return;
@@ -244,17 +255,16 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         // For non-private payments, proceed directly
         try {
-            const tx = await send(client, account, recipient, BigInt(amount), isPrivate)
+            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
-            setLoading(false)
-            setAmount("")
-            setRecipient("")
         } catch (error) {
             console.error("Error sending transaction:", error);
             toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
+        } finally {
             setLoading(false)
             setAmount("")
             setRecipient("")
+            clientRef.current.terminate()
         }
     }
 
@@ -348,7 +358,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                     {/* Send Button */}
                     <Button
                         className="w-full h-10 text-sm font-medium"
-                        disabled={!amount || !recipient || loading || !client || isNaN(Number(amount)) || Number(amount) <= 0}
+                        disabled={!amount || !recipient || loading || isNaN(Number(amount)) || Number(amount) <= 0}
                         onClick={onSend}
                     >
                         {loading ? (
@@ -403,8 +413,8 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                         <DialogTitle>Private Note Generated</DialogTitle>
 
                     </DialogHeader>
-                    <div className="space-y-4">
-                        Receiver is offline. Please share the link below with them to complete the private payment.
+                    <div className="space-y-4 ">
+                        <div className="py-2 text-sm">The Receiver is offline. Please share the link below with them to complete the private payment.</div>
                         <div className="flex items-center gap-2">
                             <Input
                                 readOnly

@@ -39,12 +39,15 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
             console.log("No pending balance to consume");
             return;
         } else if (!consumingLoading) {
-
             set({ consumingLoading: true });
+            // if consumable notes are found we consume them but terminate the client after consuming
+            const { WebClient } = await import("@demox-labs/miden-sdk");
+            const client = await WebClient.createClient(RPC_ENDPOINT);
             try {
                 toast.info(`Found ${consumableNotes.length} pending notes to consume, consuming...`, {
                     position: "top-right"
                 });
+
                 const noteIds = consumableNotes.map((note: any) => note.inputNoteRecord().id().toString());
                 const consumeTxRequest = client.newConsumeTransactionRequest(noteIds)
                 const txResult = await client.newTransaction(accountId, consumeTxRequest)
@@ -55,6 +58,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
                 console.error("Error consuming notes:", error);
             } finally {
                 set({ consumingLoading: false });
+                client.terminate()
             }
         }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMidenSdkStore } from "@/providers/sdk-provider"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTransactionStore } from "@/providers/transaction-provider"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { ArrowUpRight, ArrowDownLeft, Droplets, Shield, Clock, XCircle } from "lucide-react"
@@ -95,31 +95,48 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
 
 export function ActivityCardList() {
     const transactions = useTransactionStore((state) => state.transactions)
-    const loading = useTransactionStore((state) => state.loading)
     const loadTransactions = useTransactionStore((state) => state.loadTransactions)
-    const [client, setClient] = useState<unknown | null>(null)
+    const clientRef = useRef<any | null>(null);
     const account = useMidenSdkStore((state) => state.account)
     const balance = useBalanceStore((state) => state.balance)
+    const [clientInitialized, setClientInitialized] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         const initClient = async () => {
             const { WebClient } = await import("@demox-labs/miden-sdk");
             const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
-            setClient(clientInstance);
+            clientInstance.terminate()
+            clientRef.current = clientInstance;
+            setClientInitialized(true);
+            console.log("Miden SDK client initialized:", clientInstance);
         };
         initClient();
+
+        return () => {
+            if (clientRef.current) {
+                clientRef.current.terminate()
+                clientRef.current = null;
+            }
+        }
     }, [])
 
 
     useEffect(() => {
-        if (!client || !account) return;
+        if (!account) return;
+        if (!clientRef.current) {
+            console.warn("Client not initialized yet, waiting for initialization...");
+            return;
+        }
 
         const fetchTransactions = async () => {
+            console.log("Fetching transactions for account:", account);
+            setLoading(true)
             try {
                 const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } = await import("@demox-labs/miden-sdk");
-                if (client instanceof WebClient) {
-                    const transactionReacords = (await client.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toString() === account);
-                    const inputNotes = (await client.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
+                if (clientRef.current instanceof WebClient) {
+                    const transactionReacords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toString() === account);
+                    const inputNotes = (await clientRef.current.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
                     const zippedInputeNotesAndTr = transactionReacords.map((tr) => {
                         if (tr.outputNotes().notes().length > 0) {
                             return { tr, inputNote: undefined }
@@ -131,11 +148,13 @@ export function ActivityCardList() {
                 }
             } catch (error) {
                 console.error("Error loading transactions:", error)
+            } finally {
+                setLoading(false)
             }
         }
 
         fetchTransactions()
-    }, [client, account, balance])
+    }, [clientInitialized, account, balance])
 
     if (loading) {
         return (

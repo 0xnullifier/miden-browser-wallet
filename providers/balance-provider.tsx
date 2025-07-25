@@ -49,6 +49,7 @@ export const useObserveBalance = () => {
     const account = useMidenSdkStore((state) => state.account)
     const loadBalance = useBalanceStore((state) => state.loadBalance)
     const [client, setClient] = useState<any | null>(null);
+
     useEffect(() => {
         const initClient = async () => {
             const { WebClient } = await import("@demox-labs/miden-sdk");
@@ -56,6 +57,12 @@ export const useObserveBalance = () => {
             setClient(clientInstance);
         };
         initClient();
+        return () => {
+            if (client) {
+                client.terminate()
+            }
+            setClient(null)
+        }
     }, []);
 
     useEffect(() => {

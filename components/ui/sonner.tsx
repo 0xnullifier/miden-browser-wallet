@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ position = "top-right", ...props }: ToasterProps) => {
     const { theme = "system" } = useTheme()
 
     return (
@@ -22,6 +22,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
                     "--success-border": "hsl(var(--primary))",
                 } as React.CSSProperties
             }
+
             {...props}
         />
     )

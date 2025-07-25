@@ -64,10 +64,9 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
 
                 await get().initializeAccount(client);
                 await get().syncState(client);
-
                 set((state) => {
-                    state.isLoading = false;
-                });
+                    state.isLoading = false
+                })
             } catch (error) {
                 console.error("Miden SDK initialization error:", error);
                 set((state) => {
