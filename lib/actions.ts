@@ -22,13 +22,13 @@ export async function importPrivateNote(noteBytes: any) {
     const { WebClient, NoteFilter, NoteFilterTypes } = await import("@demox-labs/miden-sdk")
     const client = await WebClient.createClient(RPC_ENDPOINT)
     try {
-        const prevCount = (await client.getInputNotes(new NoteFilter(NoteFilterTypes.All))).length;
+        const prevCount = (await client.getConsumableNotes()).length;
         let afterCount = prevCount;
         let retryNumber = 0;
         // somtimes the import is failed due to the note not being ready yet, so we retry until the note is imported
-        while (afterCount !== prevCount + 1 && retryNumber < 4) {
+        while (afterCount !== prevCount + 1 && retryNumber < 10) {
             await client.importNote(noteBytes)
-            afterCount = (await client.getInputNotes(new NoteFilter(NoteFilterTypes.All))).length;
+            afterCount = (await client.getConsumableNotes()).length;
             console.log("Trying to import, number:", retryNumber);
             retryNumber += 1;
         }

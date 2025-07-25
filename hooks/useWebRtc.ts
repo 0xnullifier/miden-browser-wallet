@@ -7,7 +7,7 @@ import { useBalanceStore } from "@/providers/balance-provider";
 import { useReceiverRef } from "@/providers/receiver-provider";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
 import { useWebRtcStore } from "@/providers/webrtc-provider";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] }
@@ -23,6 +23,7 @@ export const useWebRtc = () => {
     const dataChannel = useWebRtcStore((state) => state.dataChannel);
     const reset = useWebRtcStore((state) => state.reset);
     const toggleReset = useWebRtcStore((state) => state.toggleReset);
+    const isReciever = useRef<boolean | null>(null);
 
 
     // Debug account changes
@@ -45,7 +46,8 @@ export const useWebRtc = () => {
             const dc = pc.createDataChannel("privateNoteChannel");
 
             dc.onopen = () => {
-                if (receiverRef.current !== account && receiverRef.current) {
+                // if the user is not the receiver, send a PING message
+                if (isReciever.current === false) {
                     dc.send(JSON.stringify({ type: "PING" }));
                     setStage("pingsent")
                 }
@@ -96,6 +98,7 @@ export const useWebRtc = () => {
                             const remoteDesc = new RTCSessionDescription(message.answer);
                             await pc.setRemoteDescription(remoteDesc)
                             console.log("Received answer from:", message.from);
+                            isReciever.current = false;
                         }
                         break;
                     case WEBRTC_MESSAGE_TYPE.OFFER:
@@ -112,6 +115,7 @@ export const useWebRtc = () => {
                             console.log(pc)
                             // the receiver in this case is the one who sent the offer
                             receiverRef.current = message.from;
+                            isReciever.current = true;
                         }
                         break;
                     case WEBRTC_MESSAGE_TYPE.ICE_CANDIDATE:
@@ -217,7 +221,7 @@ const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataCha
             break;
         case MESSAGE_TYPE.NOTE_BYTES:
             try {
-                importPrivateNote(message.bytes)
+                await importPrivateNote(message.bytes)
                 dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
                 setStage("noteReceived")
             } catch (error) {
