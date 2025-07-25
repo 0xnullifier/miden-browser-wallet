@@ -135,13 +135,14 @@ export function ActivityCardList() {
             try {
                 const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } = await import("@demox-labs/miden-sdk");
                 if (clientRef.current instanceof WebClient) {
-                    const transactionReacords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toString() === account);
+                    const transactionRecords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toString() === account);
                     const inputNotes = (await clientRef.current.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
-                    const zippedInputeNotesAndTr = transactionReacords.map((tr) => {
+                    const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
                         if (tr.outputNotes().notes().length > 0) {
                             return { tr, inputNote: undefined }
                         } else {
-                            return { tr, inputNote: inputNotes.filter(note => note.consumerTransactionId() === tr.id().toHex()) }
+                            const inputNotesForTr = inputNotes.filter(note => note.consumerTransactionId() === tr.id().toHex())
+                            return { tr, inputNote: inputNotesForTr }
                         }
                     })
                     await loadTransactions(zippedInputeNotesAndTr)

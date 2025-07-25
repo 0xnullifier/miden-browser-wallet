@@ -17,12 +17,13 @@ export interface TransactionStore {
     loadTransactions: (record: { tr: any, inputNote: any | undefined }[]) => Promise<void>;
 }
 function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNote: any | undefined }): UITransaction {
-    if (inputNote === undefined) {
+    console.log(inputNote)
+    if (inputNote === undefined || inputNote.length === 0) {
         const outputNotes = tr.outputNotes().notes().map((note) => note.intoFull())
         const amount = outputNotes.reduce((acc: bigint, note) => {
-            const fungibleAssets = note?.assets().fungibleAssets();
-            return acc + (fungibleAssets?.reduce((sum: bigint, asset) => sum + asset.amount(), 0n) || 0n);
-        }, 0n);
+            const fungibleAssets = note?.assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
+            return acc + (fungibleAssets?.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0)) || BigInt(0));
+        }, BigInt(0));
         const statusObject = tr.transactionStatus()
         return {
             id: tr.id().toHex(),
@@ -31,21 +32,18 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
             timestamp: tr.blockNum().toString(),
             status: (statusObject.isCommitted()) ? "isCommited" : (statusObject.isPending()) ? "isPending" : "isFailed"
         }
-    }
-
-    const inputNoteNullifier = tr.inputNoteNullifiers();
-    if (inputNoteNullifier.length > 0) {
+    } else {
         if (!inputNote) {
             throw new Error("Input notes do not match transaction input note nullifiers");
         }
 
         const amount = inputNote.reduce((acc: bigint, note) => {
             const fungibleAssets = note.details().assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
-            return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), 0n);
-        }, 0n);
+            return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0));
+        }, BigInt(0));
 
         const statusObject = tr.transactionStatus()
-        const transactionType = inputNote.metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
+        const transactionType = inputNote[0].metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
         return {
             id: tr.id().toHex(),
             type: transactionType,
@@ -54,7 +52,6 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
             status: (statusObject.isCommitted()) ? "isCommited" : (statusObject.isPending()) ? "isPending" : "isFailed"
         }
     }
-    throw new Error("Transaction does not have input or output notes");
 }
 
 
