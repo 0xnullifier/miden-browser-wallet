@@ -18,7 +18,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
     loading: false,
     faucetLoading: false,
     consumingLoading: false,
-    balance: 0n,
+    balance: BigInt(0),
 
 
     loadBalance: async (client, _accountId) => {
@@ -28,7 +28,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
         set({ loading: true });
         const accountRecord = await client.getAccount(accountId)
         if (!accountRecord) {
-            set({ loading: false, balance: 0n });
+            set({ loading: false, balance: BigInt(0) });
             throw new Error("Account Record not found");
         }
         const balance = accountRecord.vault().getBalance(AccountId.fromHex(FAUCET_ID));

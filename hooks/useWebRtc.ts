@@ -17,9 +17,28 @@ export const useWebRtc = () => {
     const setDataChannel = useWebRtcStore((state) => state.setDataChannel);
     const setPeerConnection = useWebRtcStore((state) => state.setPeerConnection);
     const setStage = useWebRtcStore((state) => state.setPrivateNoteStage);
+    const webSocket = useWebRtcStore((state) => state.webSocket);
+    const peerConnection = useWebRtcStore((state) => state.peerConnection);
+    const dataChannel = useWebRtcStore((state) => state.dataChannel);
+    const reset = useWebRtcStore((state) => state.reset);
+    const toggleReset = useWebRtcStore((state) => state.toggleReset);
+
+
+    // Debug account changes
+    useEffect(() => {
+        console.log("🟡 Account changed to:", account);
+    }, [account]);
 
     useEffect(() => {
+        // in case the peer connection or data channel changes 
+
+    }, [peerConnection, dataChannel])
+
+
+    useEffect(() => {
+        console.log("🟢 useWebRtc effect running with account:", account);
         if (account) {
+            setStage("idle")
             const ws = new WebSocket(WEBSOCKET_URL);
             const pc = new RTCPeerConnection(configuration);
             const dc = pc.createDataChannel("privateNoteChannel");
@@ -31,14 +50,14 @@ export const useWebRtc = () => {
                 }
                 console.log("remote data channel is open");
             }
-            dc.onmessage = async (event) => await handleDataChannelMessage(event, dc, setStage)
+            dc.onmessage = async (event) => await handleDataChannelMessage(event, dc, setStage, toggleReset)
             dc.onclose = () => {
                 console.log("Data channel is closed");
             }
 
             pc.ondatachannel = (event) => {
                 const incomingChannel = event.channel;
-                incomingChannel.onmessage = async (event) => await handleDataChannelMessage(event, incomingChannel, setStage);
+                incomingChannel.onmessage = async (event) => await handleDataChannelMessage(event, incomingChannel, setStage, toggleReset);
                 incomingChannel.onopen = () => {
                     console.log("Incoming data channel is open");
                 }
@@ -49,7 +68,18 @@ export const useWebRtc = () => {
             }
 
             ws.onopen = () => {
+                console.log("🟢 WebSocket opened successfully");
                 ws.send(JSON.stringify({ type: "REGISTER", wallet: account }))
+            }
+
+            ws.onclose = (event) => {
+                console.log("🔴 WebSocket closed!", event);
+                console.log("🔴 Close code:", event.code, "Reason:", event.reason);
+                console.trace("WebSocket close trace");
+            }
+
+            ws.onerror = (error) => {
+                console.log("🔴 WebSocket error:", error);
             }
 
             ws.onmessage = async (event) => {
@@ -117,6 +147,10 @@ export const useWebRtc = () => {
                 }
             }
 
+            pc.onicecandidateerror = (event) => {
+                console.log("ICE Candidate Error:", event);
+            }
+
             pc.addEventListener('connectionstatechange', (event) => {
                 console.log('Connection state changed:', pc.connectionState);
                 if (pc.connectionState === 'connected') {
@@ -124,28 +158,54 @@ export const useWebRtc = () => {
                 } else if (pc.connectionState === 'disconnected') {
                     console.log('Peer connection disconnected');
                 } else if (pc.connectionState === 'failed') {
-                    console.log('Peer connection failed');
+                    console.log('Peer connection failed', event);
                 }
             })
+
+
 
             setPeerConnection(pc);
             setWebSocket(ws);
 
             return () => {
+                console.log("🔴 useWebRtc cleanup running - WebSocket will be closed!");
+                console.trace("WebSocket cleanup trace");
                 if (ws.readyState === WebSocket.OPEN) {
+                    console.log("🔴 Closing WebSocket in cleanup");
                     ws.close();
                 }
+                console.log("🔴 Closing PeerConnection in cleanup");
                 pc.close();
                 setDataChannel(null);
+                setPeerConnection(null)
+                setWebSocket(null);
             };
         }
 
-    }, [account]);
+    }, [account, reset]);
+
+    // Separate cleanup on component unmount only
+    useEffect(() => {
+        return () => {
+            console.log("🔴 Component unmounting - cleaning up WebRTC resources");
+            if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+                console.log("🔴 Closing WebSocket on unmount");
+                webSocket.close();
+            }
+            if (peerConnection) {
+                console.log("🔴 Closing PeerConnection on unmount");
+                peerConnection.close();
+            }
+            setDataChannel(null);
+            setWebSocket(null);
+            setPeerConnection(null);
+        };
+    }, []);
 
 }
 
 
-const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataChannel, setStage: (stage: SendPrivateNoteStages) => void) => {
+const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataChannel, setStage: (stage: SendPrivateNoteStages) => void, toggleReset: () => void) => {
     const message = JSON.parse(event.data);
     switch (message.type) {
         case MESSAGE_TYPE.PING:
@@ -158,11 +218,26 @@ const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataCha
             try {
                 const { WebClient } = await import("@demox-labs/miden-sdk")
                 const client = await WebClient.createClient(RPC_ENDPOINT)
-                await client.importNote(message.bytes)
-                console.log("Received note bytes:", message.bytes);
-                setStage("noteReceived")
-                toast.success("Private note received successfully");
-                dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
+                toast.promise(client.importNote(message.bytes), {
+                    position: "top-right",
+                    loading: "Processing private note bytes...",
+                    success: async (data) => {
+                        console.log("Private note bytes processed successfully:", data);
+                        await new Promise<void>((resolve) => setTimeout(resolve, 5000));
+                        dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
+                        setStage("noteReceived")
+                        toggleReset()
+                        return "Private note received successfully";
+                    },
+                    error: (error) => {
+                        console.error("Failed to process private note bytes:", error);
+                        dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
+                        setStage("noteReceived")
+                        toggleReset()
+                        return "Failed to process private note bytes"
+                    }
+                })
+
             } catch (error) {
                 console.error("Error processing note bytes:", error);
                 toast.error("Failed to process private note bytes");
@@ -170,6 +245,7 @@ const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataCha
             break;
         case MESSAGE_TYPE.NOTE_RECEIVED_ACK:
             setStage("noteReceivedAck");
+            toggleReset()
             break;
         default:
             console.error("Unknown message type:", message);

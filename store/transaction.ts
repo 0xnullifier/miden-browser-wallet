@@ -3,6 +3,7 @@
 import { FAUCET_ID } from "@/lib/constants";
 
 export interface UITransaction {
+    id: string,
     type: "Incoming" | "Outgoing" | "Faucet";
     amount: bigint;
     timestamp: string;
@@ -13,42 +14,43 @@ export interface UITransaction {
 export interface TransactionStore {
     loading: boolean;
     transactions: UITransaction[];
-    loadTransactions: (transactionReacords: any, inputNotes: any) => Promise<void>;
+    loadTransactions: (record: { tr: any, inputNote: any | undefined }[]) => Promise<void>;
 }
-function transactionRecordToUITransaction(transactionRecord: any, inputNote?: any): UITransaction {
-    const outputNotes = transactionRecord.outputNotes().notes().map(note => note.intoFull()).filter((note) => note !== undefined);
-    const isOutgoing = outputNotes.length > 0;
-    if (isOutgoing) {
+function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNote: any | undefined }): UITransaction {
+    if (inputNote === undefined) {
+        const outputNotes = tr.outputNotes().notes().map((note) => note.intoFull())
         const amount = outputNotes.reduce((acc: bigint, note) => {
-            const fungibleAssets = note.assets().fungibleAssets();
-            return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), 0n);
+            const fungibleAssets = note?.assets().fungibleAssets();
+            return acc + (fungibleAssets?.reduce((sum: bigint, asset) => sum + asset.amount(), 0n) || 0n);
         }, 0n);
-        const statusObject = transactionRecord.transactionStatus()
+        const statusObject = tr.transactionStatus()
         return {
+            id: tr.id().toHex(),
             type: "Outgoing",
             amount,
-            timestamp: transactionRecord.blockNum().toString(),
+            timestamp: tr.blockNum().toString(),
             status: (statusObject.isCommitted()) ? "isCommited" : (statusObject.isPending()) ? "isPending" : "isFailed"
         }
     }
 
-    const inputNoteNullifier = transactionRecord.inputNoteNullifiers();
+    const inputNoteNullifier = tr.inputNoteNullifiers();
     if (inputNoteNullifier.length > 0) {
-        if (!inputNote || inputNote.length !== inputNoteNullifier.length) {
+        if (!inputNote) {
             throw new Error("Input notes do not match transaction input note nullifiers");
         }
 
         const amount = inputNote.reduce((acc: bigint, note) => {
-            const fungibleAssets = note.details().assets().fungibleAssets();
+            const fungibleAssets = note.details().assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
             return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), 0n);
         }, 0n);
 
-        const statusObject = transactionRecord.transactionStatus()
+        const statusObject = tr.transactionStatus()
         const transactionType = inputNote[0].metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
         return {
+            id: tr.id().toHex(),
             type: transactionType,
             amount: amount,
-            timestamp: transactionRecord.blockNum().toString(),
+            timestamp: tr.blockNum().toString(),
             status: (statusObject.isCommitted()) ? "isCommited" : (statusObject.isPending()) ? "isPending" : "isFailed"
         }
     }
@@ -63,14 +65,10 @@ export const createTransactionStore = () => create<TransactionStore, [["zustand/
     immer((set) => ({
         loading: false,
         transactions: [],
-        loadTransactions: async (transactionRecords, inputNotes) => {
+        loadTransactions: async (record) => {
             set({ loading: true });
             try {
-                const transactions: UITransaction[] = transactionRecords.map((transactionRecord) => {
-                    const inputNoteNullifiers = transactionRecord.inputNoteNullifiers().map(note => note.toHex());
-                    const inputNotesForTr = inputNotes.filter(note => inputNoteNullifiers.includes(note.nullifier()))
-                    return transactionRecordToUITransaction(transactionRecord, inputNotesForTr);
-                })
+                const transactions: UITransaction[] = record.map((record) => transactionRecordToUITransaction(record))
                 transactions.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
                 set({ transactions });
             } catch (error) {

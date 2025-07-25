@@ -8,7 +8,7 @@ import { ArrowUpRight, ArrowDownLeft, Droplets, Shield, Clock, XCircle } from "l
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { RPC_ENDPOINT } from "@/lib/constants"
+import { EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
 import { UITransaction } from "@/store/transaction"
 import { useTheme } from "../ui/theme-provider"
 
@@ -73,12 +73,12 @@ function getAmountColor(type: UITransaction["type"], status: UITransaction["stat
 }
 
 function TransactionItem({ transaction }: { transaction: UITransaction }) {
-    const { type, amount, timestamp, status } = transaction
+    const { type, amount, timestamp, status, id } = transaction
     const isNegative = type === "Outgoing"
     const formattedAmount = formatAmount(amount)
     const displayAmount = isNegative ? `-${formattedAmount}` : `+${formattedAmount}`
     return (
-        <Card className="">
+        <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => { window.open(EXPLORER_URL(id), "_blank") }}>
             <CardContent className="flex items-center gap-4">
                 <div className="flex-shrink-0">{getTransactionIcon(type, status)}</div>
 
@@ -116,12 +116,19 @@ export function ActivityCardList() {
 
         const fetchTransactions = async () => {
             try {
-                const { TransactionFilter, NoteFilter, NoteFilterTypes } = await import("@demox-labs/miden-sdk");
-                ///@ts-ignore
-                const transactionReacords = (await client.getTransactions(TransactionFilter.all())).filter((tx: any) => tx.accountId().toString() === account);
-                ///@ts-ignore
-                const inputNotes = (await client.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
-                await loadTransactions(transactionReacords, inputNotes)
+                const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } = await import("@demox-labs/miden-sdk");
+                if (client instanceof WebClient) {
+                    const transactionReacords = (await client.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toString() === account);
+                    const inputNotes = (await client.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
+                    const zippedInputeNotesAndTr = transactionReacords.map((tr) => {
+                        if (tr.outputNotes().notes().length > 0) {
+                            return { tr, inputNote: undefined }
+                        } else {
+                            return { tr, inputNote: inputNotes.filter(note => note.consumerTransactionId() === tr.id().toHex()) }
+                        }
+                    })
+                    await loadTransactions(zippedInputeNotesAndTr)
+                }
             } catch (error) {
                 console.error("Error loading transactions:", error)
             }

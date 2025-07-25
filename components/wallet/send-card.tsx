@@ -137,10 +137,14 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         if (stage === "noteReceivedAck" && dc && dc.readyState === "open") {
             setLoading(false)
+            setNoteBytes(null)
+            setTx(null)
+            setBase64NoteStr(null)
+            toast.success("Private note sent successfully")
             setAmount("")
             setRecipient("")
             dc.close()
-            setDataChannel(null)
+            setDataChannel(null);
             console.log("Private note received acknowledgment");
         }
 
