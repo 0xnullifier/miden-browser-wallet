@@ -45,7 +45,7 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
         }, 0n);
 
         const statusObject = tr.transactionStatus()
-        const transactionType = inputNote[0].metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
+        const transactionType = inputNote.metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
         return {
             id: tr.id().toHex(),
             type: transactionType,

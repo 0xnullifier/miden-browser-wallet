@@ -2,11 +2,13 @@
 
 import { importPrivateNote } from "@/lib/actions";
 import { Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+
 export default function ReceivePage() {
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = useSearchParams()
     const [noteBytes, setNoteBytes] = useState<number[] | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [success, setSuccess] = useState<boolean>(false);
