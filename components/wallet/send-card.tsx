@@ -16,6 +16,7 @@ import { useWebRtcStore } from "@/providers/webrtc-provider"
 import { useReceiverRef } from "@/providers/receiver-provider"
 import { MESSAGE_TYPE, WEBRTC_MESSAGE_TYPE } from "@/lib/types"
 import { toast } from "sonner"
+import { OneToMany } from "./one-to-many"
 
 
 // Send Card Component
@@ -438,6 +439,8 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <OneToMany isOneToMany={isOneToMany} setIsOneToMany={setIsOneToMany} amount={amount} receipient={recipient} />
 
         </div>
     )
