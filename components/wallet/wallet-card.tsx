@@ -7,6 +7,7 @@ import { Button } from "../ui/button"
 import { Activity, Droplets, MoreHorizontal, QrCode, Send } from "lucide-react"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
+import { WalletDropdown } from "./wallet-dropdown"
 export type toShowType = "send" | "activity" | "receive" | "faucet"
 
 interface WalletCardProps {
@@ -48,9 +49,7 @@ export function WalletCard({ setToShow }: WalletCardProps) {
                         )}
                         {`${address.slice(0, 6)}...${address.slice(-4)}`}
                     </span>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-accent">
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                    <WalletDropdown />
                 </div>
             </CardHeader>
 
