@@ -1,7 +1,7 @@
-import { FAUCET_ID as _, RPC_ENDPOINT } from "./constants";
+import { FAUCET_ID as _, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
 
-export async function send(client: any, from: string, to: string, amount: bigint, isPrivate: boolean) {
-    const { WebClient, AccountId, NoteType, Note } = await import("@demox-labs/miden-sdk");
+export async function send(client: any, from: string, to: string, amount: bigint, isPrivate: boolean, delegate?: boolean) {
+    const { WebClient, AccountId, NoteType, TransactionProver } = await import("@demox-labs/miden-sdk");
     if (client instanceof WebClient) {
         const noteType = isPrivate ? NoteType.Private : NoteType.Public;
         const FAUCET_ID = AccountId.fromHex(_);
@@ -14,8 +14,9 @@ export async function send(client: any, from: string, to: string, amount: bigint
             noteType,
             amount
         )
+        const prover = delegate ? TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT) : null
         let txResult = await client.newTransaction(accountId, sendTxRequest);
-        await client.submitTransaction(txResult);
+        await client.submitTransaction(txResult, prover);
         return txResult
     }
 }

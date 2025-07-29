@@ -6,3 +6,4 @@ export const FAUCET_API_ENDPOINT = (address: string, amount: string) => `https:/
 export const EXPLORER_URL = (txId: string) => `https://testnet.midenscan.com/tx/${txId}`
 export const BASE_URL = typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "http://localhost:5173"
 export const WEBSOCKET_URL = "wss://faucet.zeroleaks.xyz/signaling";
+export const TX_PROVER_ENDPOINT = 'https://tx-prover.testnet.miden.io';

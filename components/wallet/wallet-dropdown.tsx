@@ -57,6 +57,8 @@ export function WalletDropdown() {
                 setLoading(false);
                 return;
             }
+            // 500 kb yikes
+            // const bytes = await client.exportStore()
             const fullAccountStr = btoa(String.fromCharCode(...fullAccount.serialize()))
             await navigator.clipboard.writeText(fullAccountStr);
             toast.success("Account exported to clipboard!", { position: "top-right" })

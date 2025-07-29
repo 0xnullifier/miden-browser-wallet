@@ -1,4 +1,4 @@
-import { FAUCET_API_ENDPOINT, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants";
+import { FAUCET_API_ENDPOINT, FAUCET_ID, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "@/lib/constants";
 import axios from "axios";
 import { create } from "zustand";
 import { sucessTxToast } from "@/components/success-tsx-toast";
@@ -41,8 +41,9 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
         } else if (!consumingLoading) {
             set({ consumingLoading: true });
             // if consumable notes are found we consume them but terminate the client after consuming
-            const { WebClient } = await import("@demox-labs/miden-sdk");
+            const { WebClient, TransactionProver } = await import("@demox-labs/miden-sdk");
             const client = await WebClient.createClient(RPC_ENDPOINT);
+            const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
             try {
                 toast.info(`Found ${consumableNotes.length} pending notes to consume, consuming...`, {
                     position: "top-right"
@@ -52,7 +53,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
                 const consumeTxRequest = client.newConsumeTransactionRequest(noteIds)
                 const txResult = await client.newTransaction(accountId, consumeTxRequest)
                 const txId = txResult.executedTransaction().id().toHex()
-                await client.submitTransaction(txResult)
+                await client.submitTransaction(txResult, prover)
                 sucessTxToast(`Consumed ${noteIds.length} successfully`, txId)
             } catch (error) {
                 console.error("Error consuming notes:", error);

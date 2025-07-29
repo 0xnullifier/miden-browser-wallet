@@ -1,6 +1,6 @@
 "use client"
 
-import { Camera, Loader2, Copy, Check } from "lucide-react"
+import { Camera, Loader2, Copy, Check, Info } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
 import { Input } from "../ui/input"
@@ -17,6 +17,13 @@ import { useReceiverRef } from "@/providers/receiver-provider"
 import { MESSAGE_TYPE, WEBRTC_MESSAGE_TYPE } from "@/lib/types"
 import { toast } from "sonner"
 import { OneToMany } from "./one-to-many"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@radix-ui/react-label"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 // Send Card Component
@@ -44,6 +51,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const stage = useWebRtcStore((state) => state.stage);
     const setStage = useWebRtcStore((state) => state.setPrivateNoteStage);
     const setDataChannel = useWebRtcStore((state) => state.setDataChannel);
+    const [delegate, setDelegate] = useState(true);
 
 
     const receiverRef = useReceiverRef()
@@ -83,7 +91,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
 
         try {
-            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate)
+            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
 
             if (isPrivate) {
@@ -256,7 +264,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         // For non-private payments, proceed directly
         try {
-            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate)
+            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
         } catch (error) {
             console.error("Error sending transaction:", error);
@@ -355,7 +363,19 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                             <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
                         </div>
                     </div>
+                    <div className="flex items-center gap-3">
+                        <Checkbox id="terms" checked={delegate} onCheckedChange={() => setDelegate(!delegate)} />
+                        <Label htmlFor="terms" className="text-xs">Use Delegate Proving</Label>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="w-3 h-3" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs text-xs text-wrap">
+                                <p>Delegate proving allows you to outsource the zk proof generation of your transaction to a third party. Keeping it makes it easier for you to use the application, We recommend it especially on mobile!</p>
+                            </TooltipContent>
+                        </Tooltip>
 
+                    </div>
                     {/* Send Button */}
                     <Button
                         className="w-full h-10 text-sm font-medium"
