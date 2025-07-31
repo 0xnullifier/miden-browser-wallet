@@ -4,6 +4,12 @@ import Link from "next/link";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { RotatingBlock } from "@/components/ui/rotating-block"
 import { useMidenSdkStore } from "@/providers/sdk-provider";
+import { Github } from "lucide-react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 export function Navbar() {
@@ -105,7 +111,16 @@ export function Navbar() {
                             </Link>
                         </nav>
 
-                        <div className="flex items-center min-w-[48px] justify-end ml-auto">
+                        <div className="flex gap-5 items-center min-w-[48px] justify-end ml-auto">
+                            <Tooltip >
+                                <TooltipTrigger asChild>
+                                    <Github className="cursor-pointer" onClick={() => window.open("https://github.com/0xnullifier/miden-browser-wallet/issues/new?template=feedback.md", "_blank")} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Give Feedback!</p>
+                                </TooltipContent>
+                            </Tooltip>
+
                             <ModeToggle />
                         </div>
                     </div>
