@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown"
 import { MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, RPC_ENDPOINT } from "@/lib/constants"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
-import { AlertCircleIcon, Copy, CopyCheck, Delete, Import, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { AlertCircleIcon, Copy, CopyCheck, Delete, Import, Loader2, MoreHorizontal, Settings, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { LoadingSpinner } from "../ui/loading-spinner"
@@ -39,6 +39,7 @@ export function WalletDropdown() {
     const [importLoading, setImportLoading] = useState(false)
     const [importDialogOpen, setImportDialogOpen] = useState(false)
     const [importAccountStr, setImportAccountStr] = useState("")
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
 
     // copy the private key to clipboard
     const handleExportAccount = async () => {
@@ -113,13 +114,18 @@ export function WalletDropdown() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="bottom">
+                        <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
+                            <Settings className="mr-2 h-4 w-4" /> Wallet Settings
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleExportAccount}>
                             <Copy className="mr-2 h-4 w-4" /> Export Account
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleImportAccount}>
                             <Import className="mr-2 h-4 w-4" /> Import Account
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-400">
+                        <DropdownMenuItem
+                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900"
+                        >
                             <Trash2 className="mr-2 h-4 w-4" color="#ef4444" />
                             Burn Wallet
                         </DropdownMenuItem>
@@ -137,7 +143,6 @@ export function WalletDropdown() {
                                         This will delete your current account
                                     </AlertDescription>
                                 </Alert>
-
                             </DialogDescription>
                         </DialogHeader>
                         <div className="flex items-center gap-2">
@@ -153,6 +158,32 @@ export function WalletDropdown() {
                                 </div>
                             </DialogClose>
                         </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Wallet Settings</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-4">
+                            {/* <label htmlFor="prover-url" className="text-sm font-medium">
+                                Transaction Prover URL
+                            </label>
+                            <input
+                                id="prover-url"
+                                type="text"
+                                className="border rounded px-3 py-2 text-sm"
+                                value={localStorage.getItem("transactionProverUrl") || ""}
+                                onChange={e => {
+                                    localStorage.setItem("transactionProverUrl", e.target.value)
+                                }}
+                                placeholder="Enter transaction prover URL"
+                            />
+                            <span className="text-xs text-muted-foreground">
+                                This URL will be used for transaction proving.
+                            </span> */}
+                        </div>
                     </DialogContent>
                 </Dialog>
             </>

@@ -1,12 +1,11 @@
 "use client";
-
-
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '../ui/card';
-import { X, Copy } from 'lucide-react';
+import { X, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMidenSdkStore } from '@/providers/sdk-provider';
+import { QRCodeSVG } from "qrcode.react"
+import { Button } from '../ui/button';
 
 export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
     const [copied, setCopied] = useState(false);
@@ -26,27 +25,36 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
 
     return (
         <div className="w-full">
-            <Card className="bg-card border-border shadow-lg shadow-primary/20 ring-1 ring-primary/10">
+            <Card className="backdrop-blur-sm shadow-lg shadow-primary/20 ring-1 ring-primary/10">
                 <CardContent className="space-y-6">
-                    <div className="flex flex-col items-center space-y-2">
-                        <span
-                            className="cursor-pointer font-mono text-sm bg-muted px-3 py-2 rounded flex items-center gap-2 relative"
-                            onClick={handleCopy}
-                            title="Copy wallet address"
-                        >
-                            {walletAddress}
-                            <span className="relative flex items-center">
-                                <Copy className="h-4 w-4" />
-                                {copied && (
-                                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs text-primary bg-background px-1 rounded shadow">
-                                        Copied!
-                                    </span>
-                                )}
-                            </span>
-                        </span>
-                        <p className="text-base text-muted-foreground text-center mt-4">
-                            Payment receiving features coming soon.
-                        </p>
+                    {/* QR Code */}
+                    <div className="flex justify-center ">
+                        <div className="p-4 bg-white rounded-xl border border-gray-200">
+                            <div className="w-40 h-40 bg-white flex items-center justify-center ">
+                                <QRCodeSVG
+                                    value={walletAddress}
+                                    size={160}
+                                    bgColor="#ffffff"
+                                    fgColor='#000000'
+                                    level='H'
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Address */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 p-3  rounded-lg border border-primary/20 bg-primary/10">
+                            <code className="flex-1 text-sm font-mono break-all">{walletAddress}</code>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleCopy}
+                                className="hover:text-primary shrink-0"
+                            >
+                                {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

@@ -84,7 +84,9 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
 
                 <div className="flex-1 min-w-0">
                     <div className="text-foreground font-medium">{getTransactionLabel(type)}</div>
-                    <div className="text-muted-foreground text-sm font-mono">{timestamp}</div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground font-mono opacity-70">
+                        # {timestamp}
+                    </div>
                 </div>
 
                 <div className={cn("font-light", getAmountColor(type, status))}>{displayAmount}</div>

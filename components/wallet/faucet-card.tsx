@@ -25,15 +25,34 @@ export function Faucet({ onClose }: { onClose: () => void }) {
             return;
         }
         if (amount) {
-            const txId = await faucet(account, amount)
+            await faucet(account, amount)
         }
     }
     return (
         <div className="w-full">
             <Card className="bg-card border-border shadow-lg shadow-primary/20 ring-1 ring-primary/10">
                 <CardContent className="space-y-3 p-4 pt-0">
-                    <div className="">
-                        <label className="text-md font-medium text-foreground pb-3">Amount</label>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex gap-2 mb-2 items-center justify-between px-2">
+                            <label className="text-md font-medium text-foreground">Amount</label>
+                            <div className="flex gap-2">
+                                {[100, 500, 1000].map(val => (
+                                    <button
+                                        key={val}
+                                        className={
+                                            "rounded-full text-center px-2 py-1 text-xs border " +
+                                            (amount === val.toString()
+                                                ? "bg-primary text-primary-foreground border-primary"
+                                                : "bg-background border-neutral-400 dark:border-muted")
+                                        }
+                                        onClick={() => setAmount(val.toString())}
+                                        style={{ minWidth: "32px", height: "24px" }}
+                                    >
+                                        {val}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <Input
                             type="text"
                             inputMode="decimal"
