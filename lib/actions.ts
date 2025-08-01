@@ -5,7 +5,7 @@ export async function send(client: any, from: string, to: string, amount: bigint
     if (client instanceof WebClient) {
         const noteType = isPrivate ? NoteType.Private : NoteType.Public;
         const FAUCET_ID = AccountId.fromHex(_);
-        const accountId = AccountId.fromHex(from)
+        const accountId = AccountId.fromBech32(from)
         const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : AccountId.fromBech32(to);
         const sendTxRequest = client.newSendTransactionRequest(
             accountId,
@@ -44,12 +44,12 @@ export async function importPrivateNote(noteBytes: any) {
     }
 }
 
-export async function sendToMany(sender: string, receipients: { to: string, amount: bigint }[]) {
-    const { WebClient, Note, AccountId, NoteAssets, FungibleAsset, NoteType, Word, Felt, OutputNote, OutputNotesArray, TransactionRequestBuilder } = await import("@demox-labs/miden-sdk");
+export async function sendToMany(sender: string, receipients: { to: string, amount: bigint }[], delegate: boolean = true) {
+    const { WebClient, Note, AccountId, NoteAssets, FungibleAsset, NoteType, Word, Felt, OutputNote, OutputNotesArray, TransactionRequestBuilder, TransactionProver } = await import("@demox-labs/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
     const faucetId = AccountId.fromHex(_);
     try {
-        const senderAccountId = AccountId.fromHex(sender);
+        const senderAccountId = AccountId.fromBech32(sender);
         const notes = new OutputNotesArray(receipients.map(({ to, amount }) => {
             const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : AccountId.fromBech32(to);
             const noteAssets = new NoteAssets([
@@ -64,7 +64,8 @@ export async function sendToMany(sender: string, receipients: { to: string, amou
             .withOwnOutputNotes(notes)
             .build()
         const txResult = await client.newTransaction(senderAccountId, txRequest);
-        await client.submitTransaction(txResult);
+        const prover = delegate ? TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT) : null
+        await client.submitTransaction(txResult, prover);
         return txResult;
     } catch (error) {
         console.error("Error sending to many:", error);

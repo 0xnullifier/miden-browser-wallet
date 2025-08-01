@@ -51,7 +51,7 @@ export function WalletDropdown() {
         const client = await WebClient.createClient(RPC_ENDPOINT);
         try {
 
-            const fullAccount = await client.getAccount(AccountId.fromHex(account));
+            const fullAccount = await client.getAccount(AccountId.fromBech32(account));
             if (!fullAccount) {
                 console.error("Account not found");
                 setLoading(false);
@@ -88,7 +88,7 @@ export function WalletDropdown() {
                 toast.error("Failed to import account. Please check the format and try again.", { position: "top-right" })
                 return;
             }
-            setAccount(account.id().toString());
+            setAccount(account.id().toBech32());
             localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, account.serialize().toString());
             // reload page
             window.location.reload();

@@ -23,7 +23,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
 
     loadBalance: async (client, _accountId) => {
         const { AccountId } = await import("@demox-labs/miden-sdk");
-        const accountId = AccountId.fromHex(_accountId);
+        const accountId = AccountId.fromBech32(_accountId);
         const { consumingLoading } = get()
         set({ loading: true });
         const accountRecord = await client.getAccount(accountId)
@@ -69,6 +69,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
         set({ faucetLoading: true });
         try {
             const txId = await axios.get(FAUCET_API_ENDPOINT(accountId, amount.toString()))
+            console.log("Faucet request successful:", txId.data);
             sucessTxToast("Faucet used successfully", txId.data);
         } catch (error) {
             console.error("Faucet request failed:", error);

@@ -9,6 +9,7 @@ import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
+import { sucessTxToast } from "../success-tsx-toast"
 
 
 export function Faucet({ onClose }: { onClose: () => void }) {
@@ -24,7 +25,7 @@ export function Faucet({ onClose }: { onClose: () => void }) {
             return;
         }
         if (amount) {
-            await faucet(account, amount)
+            const txId = await faucet(account, amount)
         }
     }
     return (

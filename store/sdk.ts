@@ -107,7 +107,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
                 try {
                     const savedAccountBytes = new Uint8Array(savedAccountData.split(',').map(Number));
                     const account = Account.deserialize(savedAccountBytes);
-                    setAccount(account.id().toString());
+                    setAccount(account.id().toBech32());
                     console.log("Account loaded from localStorage:", account);
                     return;
                 } catch (error) {
@@ -117,7 +117,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
 
             console.log("No saved account found, creating new account...");
             const newAccount = await client.newWallet(AccountStorageMode.private(), true);
-            setAccount(newAccount.id().toString());
+            setAccount(newAccount.id().toBech32());
             localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccount.serialize().toString());
             console.log("New account created and saved:", newAccount);
         },
@@ -133,7 +133,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
             }
             const { AccountStorageMode } = await import("@demox-labs/miden-sdk");
             const newAccount = await client.newWallet(AccountStorageMode.private(), true)
-            setAccount(newAccount.id().toString());
+            setAccount(newAccount.id().toBech32());
             console.log("New account created:", newAccount);
             localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccount.serialize().toString())
             return newAccount;
