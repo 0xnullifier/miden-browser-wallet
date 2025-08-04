@@ -91,7 +91,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
 
         try {
-            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate, delegate)
+            const tx = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
 
             if (isPrivate) {
@@ -264,7 +264,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         // For non-private payments, proceed directly
         try {
-            const tx = await send(clientRef.current, account, recipient, BigInt(amount), isPrivate, delegate)
+            const tx = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
         } catch (error) {
             console.error("Error sending transaction:", error);

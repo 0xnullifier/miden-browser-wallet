@@ -76,6 +76,15 @@ export function WalletDropdown() {
         setImportDialogOpen(true)
     }
 
+    const handleBurnWallet = async () => {
+        if (!account) {
+            console.error("No account found to burn wallet")
+            return
+        }
+        const { WebClient, AccountId } = await import("@demox-labs/miden-sdk");
+        const client = await WebClient.createClient(RPC_ENDPOINT);
+    }
+
     const importAccount = async () => {
         if (!importAccountStr) return;
         setImportLoading(true)

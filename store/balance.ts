@@ -1,4 +1,4 @@
-import { FAUCET_API_ENDPOINT, FAUCET_ID, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "@/lib/constants";
+import { DECIMALS, FAUCET_API_ENDPOINT, FAUCET_ID, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "@/lib/constants";
 import axios from "axios";
 import { create } from "zustand";
 import { sucessTxToast } from "@/components/success-tsx-toast";
@@ -11,7 +11,7 @@ export interface BalanceState {
     consumingLoading: boolean;
     balance: bigint;
     loadBalance: (client: any, accountId: string) => Promise<void>;
-    faucet: (accountId: string, amount: string) => Promise<void>;
+    faucet: (accountId: string, amount: number) => Promise<void>;
 }
 
 export const createBalanceStore = () => create<BalanceState, [["zustand/immer", never]]>((set, get) => ({
@@ -31,7 +31,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
             set({ loading: false, balance: BigInt(0) });
             throw new Error("Account Record not found");
         }
-        const balance = accountRecord.vault().getBalance(AccountId.fromHex(FAUCET_ID));
+        const balance = accountRecord.vault().getBalance(AccountId.fromBech32(FAUCET_ID));
         set({ loading: false, balance });
 
         const consumableNotes = await client.getConsumableNotes();
@@ -68,7 +68,8 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
     faucet: async (accountId, amount) => {
         set({ faucetLoading: true });
         try {
-            const txId = await axios.get(FAUCET_API_ENDPOINT(accountId, amount.toString()))
+            const amountInBaseDenom = BigInt(Math.trunc(Number(amount) * DECIMALS))
+            const txId = await axios.get(FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()))
             console.log("Faucet request successful:", txId.data);
             sucessTxToast("Faucet used successfully", txId.data);
         } catch (error) {

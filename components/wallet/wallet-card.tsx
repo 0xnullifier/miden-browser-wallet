@@ -8,6 +8,7 @@ import { Activity, Droplets, MoreHorizontal, QrCode, Send } from "lucide-react"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { WalletDropdown } from "./wallet-dropdown"
+import { DECIMALS } from "@/lib/constants"
 export type toShowType = "send" | "activity" | "receive" | "faucet"
 
 interface WalletCardProps {
@@ -16,7 +17,9 @@ interface WalletCardProps {
 
 export function Balance() {
     const balance = useBalanceStore((state) => state.balance)
-    return <div className="text-4xl sm:text-5xl font-light mb-4 leading-tight py-3 flex items-end gap-2">{Number(balance).toFixed(2)}<p className="text-2xl">MDN</p></div>
+    const balanceInToken = Number(balance) / DECIMALS
+    console.log(balanceInToken)
+    return <div className="text-4xl sm:text-5xl font-light mb-4 leading-tight py-3 flex items-end gap-2">{Number(balanceInToken).toFixed(2)}<p className="text-2xl">MDN</p></div>
 }
 
 export function WalletCard({ setToShow }: WalletCardProps) {
@@ -47,7 +50,7 @@ export function WalletCard({ setToShow }: WalletCardProps) {
                                 Copied!
                             </span>
                         )}
-                        {`${address.slice(0, 6)}...${address.slice(-4)}`}
+                        {`${address.slice(0, 8)}...${address.slice(-4)}`}
                     </span>
                     <WalletDropdown />
                 </div>

@@ -8,20 +8,20 @@ import { ArrowUpRight, ArrowDownLeft, Droplets, Shield, Clock, XCircle } from "l
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
+import { DECIMALS, EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
 import { UITransaction } from "@/store/transaction"
 import { useTheme } from "../ui/theme-provider"
 
 
 
 function formatAmount(amount: bigint): string {
-    const value = Number(amount)
+    const value = Number(amount) / DECIMALS
     if (Math.abs(value) >= 1000000) {
         return `$${(value / 1000000).toFixed(0)}M`
     } else if (Math.abs(value) >= 1000) {
         return `$${(value / 1000).toFixed(0)}k`
     }
-    return `$${value}`
+    return `$${value.toFixed(3)}`
 }
 
 function getTransactionIcon(type: UITransaction["type"], status: UITransaction["status"]) {

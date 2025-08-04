@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { sucessTxToast } from "../success-tsx-toast"
+import { useEffect } from "react"
 
 
 export function Faucet({ onClose }: { onClose: () => void }) {
@@ -18,14 +19,18 @@ export function Faucet({ onClose }: { onClose: () => void }) {
     const faucet = useBalanceStore((state) => state.faucet)
     const faucetLoading = useBalanceStore((state) => state.faucetLoading)
     const account = useMidenSdkStore(store => store.account)
-
+    useEffect(() => {
+        console.log("Faucet component mounted, account:", account)
+    }, [])
+    console.log("Faucet account:", account)
+    console.log(amount)
     const onMint = async () => {
         if (!account) {
             console.error("No account found for faucet request");
             return;
         }
         if (amount) {
-            await faucet(account, amount)
+            await faucet(account, parseFloat(amount))
         }
     }
     return (
@@ -55,14 +60,11 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                         </div>
                         <Input
                             type="text"
-                            inputMode="decimal"
-                            pattern="^[0-9]*[.,]?[0-9]*$"
-                            value={amount}
+                            value={amount.toString()}
                             placeholder="0.00"
                             onChange={e => {
-                                const value = e.target.value.replace(/[^0-9.,]/g, "");
-                                setAmount(value);
-                                if (value && parseFloat(value) > 10000) {
+                                setAmount(e.target.value);
+                                if (parseFloat(e.target.value) > 10000) {
                                     setShowAlert(true);
                                 } else {
                                     setShowAlert(false);

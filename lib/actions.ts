@@ -1,18 +1,19 @@
-import { FAUCET_ID as _, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
+import { FAUCET_ID as _, DECIMALS, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
 
-export async function send(client: any, from: string, to: string, amount: bigint, isPrivate: boolean, delegate?: boolean) {
+export async function send(client: any, from: string, to: string, amount: number, isPrivate: boolean, delegate?: boolean) {
     const { WebClient, AccountId, NoteType, TransactionProver } = await import("@demox-labs/miden-sdk");
     if (client instanceof WebClient) {
         const noteType = isPrivate ? NoteType.Private : NoteType.Public;
-        const FAUCET_ID = AccountId.fromHex(_);
+        const FAUCET_ID = AccountId.fromBech32(_);
         const accountId = AccountId.fromBech32(from)
         const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : AccountId.fromBech32(to);
+        const amountInBaseDenom = BigInt(Math.trunc(amount * DECIMALS))
         const sendTxRequest = client.newSendTransactionRequest(
             accountId,
             toAccountId,
             FAUCET_ID,
             noteType,
-            amount
+            amountInBaseDenom
         )
         const prover = delegate ? TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT) : null
         let txResult = await client.newTransaction(accountId, sendTxRequest);
@@ -47,7 +48,7 @@ export async function importPrivateNote(noteBytes: any) {
 export async function sendToMany(sender: string, receipients: { to: string, amount: bigint }[], delegate: boolean = true) {
     const { WebClient, Note, AccountId, NoteAssets, FungibleAsset, NoteType, Word, Felt, OutputNote, OutputNotesArray, TransactionRequestBuilder, TransactionProver } = await import("@demox-labs/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
-    const faucetId = AccountId.fromHex(_);
+    const faucetId = AccountId.fromBech32(_);
     try {
         const senderAccountId = AccountId.fromBech32(sender);
         const notes = new OutputNotesArray(receipients.map(({ to, amount }) => {
