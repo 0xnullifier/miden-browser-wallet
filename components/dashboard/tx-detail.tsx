@@ -7,13 +7,15 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowUpRight, ArrowDownLeft, Droplets } from "lucide-react";
+import { Search, ArrowUpRight, ArrowDownLeft, Droplets, Copy, Check } from "lucide-react";
 
 export function TransactionDetails() {
     const [loading, setLoading] = useState(true);
     const { id } = useParams<{ id: string }>();
     const [transaction, setTransaction] = useState<BackendTransaction | null>(null);
     const [notFound, setNotFound] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [senderCopied, setSenderCopied] = useState(false);
 
     const fetchTransaction = async () => {
         setLoading(true);
@@ -176,14 +178,14 @@ export function TransactionDetails() {
                     <div className="text-center space-y-2 px-4">
                         <h2 className="text-xl sm:text-2xl font-semibold">Transaction Not Found</h2>
                         <p className="text-muted-foreground text-sm sm:text-base max-w-md">
-                            The transaction with ID <span className="font-mono font-medium break-all">{id}</span> could not be found.
-                            It may not exist or might not have been processed yet.
+                            The transaction with ID <span className="font-mono font-medium break-all">{id}</span> could not be found. The transaction indexing started at block number 382100. If the transaction is from before this block, it may not be indexed yet.
                         </p>
                     </div>
                 </div>
             </div>
         );
     }
+
 
     return (
         <div className="bg-background max-w-6xl mx-auto px-4 sm:px-10 lg:px-8">
@@ -192,17 +194,43 @@ export function TransactionDetails() {
                 {/* Hash - Center Focus */}
                 <div className="text-center pb-6 sm:pb-8">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Transaction ID</p>
-                    <p className="text-primary font-mono text-lg sm:text-xl font-medium break-all leading-relaxed">
-                        <span className="hidden sm:inline">{`${transaction.tx_id.slice(0, 10)}...${transaction.tx_id.slice(-10)}`}</span>
-                        <span className="sm:hidden">{`${transaction.tx_id.slice(0, 6)}...${transaction.tx_id.slice(-6)}`}</span>
-                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                        <p className="text-primary font-mono text-lg sm:text-xl font-medium break-all leading-relaxed">
+                            <span className="hidden sm:inline">{`${transaction.tx_id.slice(0, 10)}...${transaction.tx_id.slice(-10)}`}</span>
+                            <span className="sm:hidden">{`${transaction.tx_id.slice(0, 6)}...${transaction.tx_id.slice(-6)}`}</span>
+                        </p>
+                        <button
+                            type="button"
+                            className="ml-2 p-1 rounded hover:bg-muted transition"
+                            onClick={() => {
+                                navigator.clipboard.writeText(transaction.tx_id);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 750);
+                            }}
+                            title="Copy Transaction ID"
+                        >
+                            {copied ? <Check className="w-4 h-4 text-green-300" onClick={() => setCopied(false)} /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Details Stack */}
                 <div className="space-y-4 sm:space-y-6">
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-3 sm:py-4 border-b border-border">
                         <span className="text-muted-foreground text-sm sm:text-base">Transaction Sender</span>
-                        <span className="font-medium font-mono text-sm sm:text-base break-all" title={transaction.sender}>
+                        <span className="font-medium flex gap-2 font-mono text-sm sm:text-base break-all" title={transaction.sender}>
+                            <button
+                                type="button"
+                                className="ml-2 p-1 rounded hover:bg-muted transition"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(transaction.tx_id);
+                                    setSenderCopied(true);
+                                    setTimeout(() => setSenderCopied(false), 750);
+                                }}
+                                title="Copy Transaction ID"
+                            >
+                                {senderCopied ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                            </button>
                             <span className="hidden sm:inline">{transaction.sender}</span>
                             <span className="sm:hidden">{`${transaction.sender.slice(0, 10)}...${transaction.sender.slice(-8)}`}</span>
                         </span>

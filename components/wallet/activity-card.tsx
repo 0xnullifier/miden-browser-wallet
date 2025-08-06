@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DECIMALS, EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
 import { UITransaction } from "@/store/transaction"
-import { useTheme } from "../ui/theme-provider"
 
 
 
@@ -78,7 +77,7 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
     const formattedAmount = formatAmount(amount)
     const displayAmount = isNegative ? `-${formattedAmount}` : `+${formattedAmount}`
     return (
-        <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => { window.open(EXPLORER_URL(id), "_blank") }}>
+        <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => { window.open(`/dashboard/tx/${id}`, "_blank") }}>
             <CardContent className="flex items-center gap-4">
                 <div className="flex-shrink-0">{getTransactionIcon(type, status)}</div>
 

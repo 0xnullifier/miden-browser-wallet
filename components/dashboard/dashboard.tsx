@@ -10,7 +10,7 @@ import { ChartLineInteractive } from '@/components/dashboard/line-chart'
 import { Badge } from '../ui/badge'
 import { useTheme } from '@/components/ui/theme-provider'
 import axios from 'axios'
-import { LATEST_TRANSACTIONS_API, STATS_API } from '@/lib/constants'
+import { GET_TRANSACTION, LATEST_TRANSACTIONS_API, STATS_API } from '@/lib/constants'
 import { BackendTransaction } from '@/lib/types'
 import Link from 'next/link'
 
@@ -181,6 +181,16 @@ function StatsCard({ icon: Icon, title, value, color, className = "" }: { icon: 
 function SearchBar({ value, onChange, isSearching }: { value: string; onChange: (value: string) => void; isSearching: boolean }) {
     const [isFocused, setIsFocused] = useState(false);
 
+    const handleSearchRedirect = () => {
+        window.open(`/dashboard/tx/${value}`, "_blank");
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && value.trim()) {
+            handleSearchRedirect();
+        }
+    };
+
     return (
         <div className="pb-8 w-full space-y-6">
             {/* Search */}
@@ -198,7 +208,8 @@ function SearchBar({ value, onChange, isSearching }: { value: string; onChange: 
                     onChange={(e) => onChange(e.target.value)}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    placeholder="Search by Transaction Hash, Address, Note Id"
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search by Tx Hash, address"
                     className="pl-10 bg-muted/30 border border-border border-solid transition-all duration-200 focus:bg-muted/50 focus:border-primary/40"
                 />
 
@@ -212,7 +223,16 @@ function SearchBar({ value, onChange, isSearching }: { value: string; onChange: 
                             className="absolute top-full mt-2 w-full bg-card border border-border border-solid rounded-lg shadow-lg z-50 p-4"
                         >
                             <div className="text-sm text-muted-foreground">
-                                Searching for: <span className="text-primary font-mono">{value}</span>
+                                Search for: <span
+                                    className="text-primary font-mono cursor-pointer hover:text-primary/80 hover:bg-primary/10 px-2 py-1 rounded-md transition-all duration-200 hover:scale-105"
+                                    onClick={handleSearchRedirect}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearchRedirect()}
+                                    tabIndex={0}
+                                    role="button"
+                                    aria-label={`Search for ${value}`}
+                                >
+                                    {value}
+                                </span>
                             </div>
                         </motion.div>
                     )}
