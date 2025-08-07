@@ -276,9 +276,9 @@ function TransactionList({ transactions, isMobile = false }: { transactions: Bac
                                 }}
                                 layout
                             >
-                                <Link
-                                    href={`/dashboard/tx/${tx.tx_id}`}
+                                <div
                                     className="flex flex-col space-y-2 p-3 hover:bg-muted/20 transition-colors cursor-pointer border-b border-border/50 last:border-b-0"
+                                    onClick={() => window.open(`/dashboard/tx/${tx.tx_id}`, '_blank')}
                                 >
                                     <div className="text-primary">{`${tx.tx_id.slice(0, 8)}...${tx.tx_id.slice(-8)}`}</div>
                                     <div className="flex items-center justify-between text-sm">
@@ -287,7 +287,7 @@ function TransactionList({ transactions, isMobile = false }: { transactions: Bac
                                         </span>
                                         {formatTxKind(tx.tx_kind)}
                                     </div>
-                                </Link>
+                                </div>
                             </motion.div>
                         ))}
                     </AnimatePresence>
