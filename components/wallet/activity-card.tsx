@@ -21,7 +21,7 @@ function formatAmount(amount: bigint): string {
     } else if (Math.abs(value) >= 1000) {
         return `$${(value / 1000).toFixed(0)}k`
     }
-    return `$${value.toFixed(3)}`
+    return `${value.toFixed(3)} MDN`
 }
 
 function getTransactionIcon(type: UITransaction["type"], status: UITransaction["status"]) {

@@ -1,4 +1,5 @@
-import { MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, RPC_ENDPOINT } from "@/lib/constants";
+import { ADD_ADDRESS_API, MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, RPC_ENDPOINT } from "@/lib/constants";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
@@ -109,6 +110,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
                     const account = Account.deserialize(savedAccountBytes);
                     setAccount(account.id().toBech32());
                     console.log("Account loaded from localStorage:", account);
+                    await axios.get(ADD_ADDRESS_API(account.id().toBech32()));
                     return;
                 } catch (error) {
                     console.error("Failed to deserialize saved account:", error);
@@ -120,6 +122,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
             setAccount(newAccount.id().toBech32());
             localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccount.serialize().toString());
             console.log("New account created and saved:", newAccount);
+            await axios.get(ADD_ADDRESS_API(newAccount.id().toBech32()));
         },
 
         createNewAccount: async () => {

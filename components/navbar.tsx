@@ -16,7 +16,7 @@ export function Navbar() {
     const blockNum = useMidenSdkStore((state) => state.blockNum);
     return (
         <header className="w-full">
-            <div className="max-w-[1200px] mx-auto px-4 py-4 md:px-6 md:py-6">
+            <div className="max-w-6xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 {/* Mobile Layout */}
                 <div className="flex flex-col gap-4 sm:hidden">
                     {/* Top row with block info and mode toggle */}
