@@ -182,6 +182,10 @@ function SearchBar({ value, onChange, isSearching }: { value: string; onChange: 
     const [isFocused, setIsFocused] = useState(false);
 
     const handleSearchRedirect = () => {
+        if (value.startsWith("0x") || value.startsWith("mtst")) {
+            window.open(`/dashboard/address/${value}`, "_blank");
+            return;
+        }
         window.open(`/dashboard/tx/${value}`, "_blank");
     };
 

@@ -164,7 +164,7 @@ export function TransactionDetails() {
                                 type="button"
                                 className="ml-2 p-1 rounded hover:bg-muted transition"
                                 onClick={() => {
-                                    navigator.clipboard.writeText(transaction.tx_id);
+                                    navigator.clipboard.writeText(transaction.sender);
                                     setSenderCopied(true);
                                     setTimeout(() => setSenderCopied(false), 750);
                                 }}
@@ -203,7 +203,7 @@ export function TransactionDetails() {
                         <div className="flex flex-col gap-3">
                             <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-2 border-b border-border">
                                 <span className="text-muted-foreground text-sm sm:text-base">Note ID</span>
-                                <span className="font-mono font-medium text-sm sm:text-base break-all" title={transaction.note_id.note_id}>
+                                <span className="font-mono font-medium text-sm sm:text-base break-all flex items-center gap-2 underline underline-offset-2 hover:text-primary cursor-pointer" onClick={() => window.open(`https://testnet.midenscan.com/note/${transaction.note_id.note_id}`)} title={transaction.note_id.note_id}>
                                     <span className="hidden sm:inline">{truncateAddress(transaction.note_id.note_id, 8, 6)}</span>
                                     <span className="sm:hidden">{truncateAddress(transaction.note_id.note_id, 10, 8)}</span>
                                 </span>
