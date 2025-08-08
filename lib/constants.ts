@@ -13,3 +13,5 @@ export const STATS_API = `${BASE_API_URL}/stats`;
 export const LATEST_TRANSACTIONS_API = `${BASE_API_URL}/latest-transactions`;
 export const GET_TRANSACTION = (txId: string) => `${BASE_API_URL}/transaction/${txId}`;
 export const GET_CHART_DATA = `${BASE_API_URL}/chart-data`;
+export const GET_ADDRESS_TRANSACTIONS = (address: string, page: number) => `${BASE_API_URL}/transactions/${address}/${page}`;
+export const GET_TRANSACTION_COUNT = (address: string) => `${BASE_API_URL}/transactions/${address}/count`;

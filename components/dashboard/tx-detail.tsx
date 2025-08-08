@@ -7,7 +7,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowUpRight, ArrowDownLeft, Droplets, Copy, Check } from "lucide-react";
+import { Search, ArrowUpRight, ArrowDownLeft, Droplets, Copy, Check, ExternalLink } from "lucide-react";
+import { formatTimestamp, renderTransactionTypeBadge, truncateAddress } from "./common";
 
 export function TransactionDetails() {
     const [loading, setLoading] = useState(true);
@@ -47,66 +48,7 @@ export function TransactionDetails() {
         }
     }
 
-    const formatTimestamp = (timestamp: string) => {
-        const date = new Date(parseInt(timestamp) * 1000);
-        return date.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-    };
 
-    const formatTxKind = (kind: string) => {
-        switch (kind) {
-            case 'send':
-                return 'Send';
-            case 'receive':
-                return 'Receive';
-            case 'faucet_request':
-                return 'Faucet Request';
-            default:
-                return kind;
-        }
-    };
-
-    const renderTransactionTypeBadge = (txKind: string) => {
-        switch (txKind) {
-            case 'send':
-                return (
-                    <Badge className="rounded-3xl bg-red-500/10 text-red-600 border-red-500/20 backdrop-blur-sm hover:bg-red-500/20 transition-all duration-200 shadow-lg pr-4 py-2 text-sm font-semibold">
-                        <ArrowUpRight className="w-4 h-4" />
-                        Send
-                    </Badge>
-                );
-            case 'receive':
-                return (
-                    <Badge className="rounded-3xl bg-green-500/10 text-green-600 border-green-500/20 backdrop-blur-sm hover:bg-green-500/20 transition-all duration-200 shadow-lg  pr-4 py-2 text-sm font-semibold">
-                        <ArrowDownLeft className="w-4 h-4" />
-                        Receive
-                    </Badge>
-                );
-            case 'faucet_request':
-                return (
-                    <Badge className="rounded-3xl bg-blue-500/10 text-blue-600 border-blue-500/20 backdrop-blur-sm hover:bg-blue-500/20 transition-all duration-200 shadow-lg pr-4 py-2 text-sm font-semibold">
-                        <Droplets className="w-4 h-4" />
-                        Faucet Request
-                    </Badge>
-                );
-            default:
-                return (
-                    <Badge variant="outline" className="backdrop-blur-sm px-4 py-2 text-sm font-semibold">
-                        {txKind}
-                    </Badge>
-                );
-        }
-    };
-
-    const truncateAddress = (address: string, startLength = 6, endLength = 4) => {
-        if (address.length <= startLength + endLength) return address;
-        return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
-    };
     useEffect(() => {
         fetchTransaction();
     }, [])
@@ -167,7 +109,6 @@ export function TransactionDetails() {
         );
     }
 
-    // Not found state
     if (notFound) {
         return (
             <div className="bg-background max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -218,7 +159,7 @@ export function TransactionDetails() {
                 <div className="space-y-4 sm:space-y-6">
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-3 sm:py-4 border-b border-border">
                         <span className="text-muted-foreground text-sm sm:text-base">Transaction Sender</span>
-                        <span className="font-medium flex gap-2 font-mono text-sm sm:text-base break-all" title={transaction.sender}>
+                        <span className="font-medium flex gap-2 font-mono text-sm sm:text-base break-all hover:underline hover:underline-offset-2 cursor-pointer hover:text-primary" title={transaction.sender}>
                             <button
                                 type="button"
                                 className="ml-2 p-1 rounded hover:bg-muted transition"
@@ -231,8 +172,8 @@ export function TransactionDetails() {
                             >
                                 {senderCopied ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                             </button>
-                            <span className="hidden sm:inline">{transaction.sender}</span>
-                            <span className="sm:hidden">{`${transaction.sender.slice(0, 10)}...${transaction.sender.slice(-8)}`}</span>
+                            <span className="hidden sm:inline" onClick={() => window.open(`/dashboard/address/${transaction.sender}`, "_blank")}>{transaction.sender}</span>
+                            <span className="sm:hidden" onClick={() => window.open(`/dashboard/address/${transaction.sender}`, "_blank")}>{`${transaction.sender.slice(0, 10)}...${transaction.sender.slice(-8)}`}</span>
                         </span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-3 sm:py-4 border-b border-border">
