@@ -5,7 +5,7 @@ import React from "react";
 
 export default function Dashboard() {
     return (
-        <div className="pl-6">
+        <div className="pl-6 max-w-6xl mx-auto">
             <QuickStart />
         </div>
     )

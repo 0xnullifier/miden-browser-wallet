@@ -8,7 +8,7 @@ import {
     SidebarGroup,
     SidebarGroupContent
 } from "../ui/sidebar";
-import { BookOpen, Wallet, Code, CreditCard, Zap, Cog, SquarePlusIcon, List, Blocks } from "lucide-react";
+import { Zap, SquarePlusIcon, List, Blocks } from "lucide-react";
 import Link from "next/link";
 
 const navigationItems = [
@@ -16,11 +16,11 @@ const navigationItems = [
         title: "QuickStart",
         icon: Zap,
         items: [
-            { title: "Installation", href: "/docs#installation" },
+            { title: "Getting Started", href: "/docs#getting-started" },
             { title: "Accounts", href: "/docs#accounts" },
-            { title: "Mint Tokens", href: "/docs#mint" },
-            { title: "Send Tokens", href: "/docs#send" },
-            { title: "Receive Tokens", href: "/docs#receive" },
+            { title: "Minting Tokens", href: "/docs#tokens-minting" },
+            { title: "Consuming Notes", href: "/docs#consuming" },
+            { title: "Sending Tokens", href: "/docs#send" },
         ]
     },
     {
@@ -53,7 +53,7 @@ const navigationItems = [
 
 export function DocsSidebar() {
     return (
-        <SidebarGroup className="max-w-[200px] py-0">
+        <SidebarGroup className="min-w-xs max-w-sm py-0">
             <SidebarGroupContent>
                 <SidebarMenu>
                     {navigationItems.map((section) => (

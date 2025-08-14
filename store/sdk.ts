@@ -58,7 +58,6 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
                 const { WebClient } = await import("@demox-labs/miden-sdk");
                 const client = await WebClient.createClient(RPC_ENDPOINT);
                 console.log("Miden SDK client initialized:", client);
-
                 set((state) => {
                     state.error = null;
                 });
@@ -127,14 +126,13 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
 
         createNewAccount: async () => {
             console.log("Creating new account in Miden SDK");
-            const { WebClient } = await import("@demox-labs/miden-sdk");
+            const { WebClient, AccountStorageMode } = await import("@demox-labs/miden-sdk");
             const client = await WebClient.createClient(RPC_ENDPOINT);
             const { setAccount } = get();
             console.log("Current client:", client);
             if (!client) {
                 throw new Error("Miden SDK client or account storage not initialized");
             }
-            const { AccountStorageMode } = await import("@demox-labs/miden-sdk");
             const newAccount = await client.newWallet(AccountStorageMode.private(), true)
             setAccount(newAccount.id().toBech32());
             console.log("New account created:", newAccount);

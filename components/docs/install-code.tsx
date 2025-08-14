@@ -28,7 +28,7 @@ export function InstallComponent({ packageManagers }: { packageManagers: Package
     }
 
     return (
-        <div className="bg-background rounded-lg border border-border overflow-hidden mt-5" id="installation">
+        <div className="bg-background rounded-lg max-w-[50rem] border border-border overflow-hidden mt-5" id="installation">
             <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="flex items-center justify-between border-b border-border bg-muted/10">
                     <TabsList className="bg-transparent border-none h-auto p-1 m-1">
