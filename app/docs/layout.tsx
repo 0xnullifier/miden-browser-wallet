@@ -9,9 +9,15 @@ export default function DocsLayout({
 }) {
     return (
         <SidebarProvider>
-            <div className="px-6 max-w-6xl flex mx-auto">
-                <DocsSidebar />
-                {children}
+            <div className="flex max-w-6xl mx-auto">
+                <div className="">
+                    <div className="sticky top-[60px] max-h-screen overflow-y-auto">
+                        <DocsSidebar />
+                    </div>
+                </div>
+                <div >
+                    {children}
+                </div>
             </div>
         </SidebarProvider>
     );

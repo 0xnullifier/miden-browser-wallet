@@ -15,6 +15,7 @@ const navigationItems = [
     {
         title: "QuickStart",
         icon: Zap,
+        href: "#quickstart",
         items: [
             { title: "Getting Started", href: "/docs#getting-started" },
             { title: "Accounts", href: "/docs#accounts" },
@@ -24,46 +25,38 @@ const navigationItems = [
         ]
     },
     {
-        title: "Use Cases",
-        icon: List,
-        items: [
-            { title: "Payments", href: "/docs/webrtc" },
-            { title: "DeFi", href: "/docs/api" },
-            { title: "Identity", href: "/docs/sdk" },
-        ]
-    },
-    {
         title: "Concepts",
         icon: Blocks,
+        href: "#concepts",
         items: [
-            { title: "Accounts", href: "/docs/webrtc" },
-            { title: "Notes", href: "/docs/api" },
-            { title: "Transactions", href: "/docs/api" },
+            { title: "Unauthenticated Notes", href: "/docs#concepts-unauth" },
+            { title: "Indexing Transactions", href: "/docs#concepts-indexing" },
         ]
     },
     {
-        title: "Advanced",
-        icon: SquarePlusIcon,
-        items: [
-            { title: "Unauthenticated Notes", href: "/docs/send" },
-            { title: "Indexing Transactions", href: "/docs/receive" },
-        ]
-    }
+        title: "Use Cases",
+        icon: List,
+        href: "#use-case",
+    },
+
 ];
 
 export function DocsSidebar() {
     return (
-        <SidebarGroup className="min-w-xs max-w-sm py-0">
+
+        <SidebarGroup className="max-w-xs">
             <SidebarGroupContent>
                 <SidebarMenu>
                     {navigationItems.map((section) => (
                         <SidebarMenuItem key={section.title}>
-                            <SidebarMenuButton className="w-full">
-                                <section.icon className="mr-2 h-4 w-4 text-primary" />
-                                <span className="text-md text-foreground">{section.title}</span>
+                            <SidebarMenuButton className="w-full" >
+                                <Link href={section.href} className="flex h-auto min-h-7 -translate-x-px items-center gap-2 rounded-md px-2 py-1 text-sm text-sidebar-foreground outline-hidden ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 group-data-[collapsible=icon]:hidden">
+                                    <section.icon className="mr-2 h-4 w-4 text-primary" />
+                                    <span className="text-md text-foreground">{section.title}</span>
+                                </Link>
                             </SidebarMenuButton>
                             <SidebarMenuSub className="gap-1">
-                                {section.items.map((item) => (
+                                {section.items?.map((item) => (
                                     <SidebarMenuSubItem key={item.href}>
                                         <Link href={item.href} className="flex h-auto min-h-7 -translate-x-px items-center gap-2 rounded-md px-2 py-1 text-sm text-sidebar-foreground outline-hidden ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 group-data-[collapsible=icon]:hidden">
                                             <span className="whitespace-normal break-words text-muted-foreground">{item.title}</span>

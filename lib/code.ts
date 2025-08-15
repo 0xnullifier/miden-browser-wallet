@@ -232,7 +232,9 @@ async function sendTokens(
     const accountId = AccountId.fromBech32(
         localStorage.getItem("account_id")! 
     );
-    const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : AccountId.fromBech32(to);
+    const toAccountId = to.startsWith("0x") ? 
+        AccountId.fromHex(to) : 
+        AccountId.fromBech32(to);
 
     const sendTxRequest = client.newSendTransactionRequest(
         accountId,
@@ -250,5 +252,128 @@ async function sendTokens(
     
     // terminate the client when done
     client.terminate();
-
 }`;
+
+
+export const UNAUTH_NOTES_SEND_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
+
+async function unauthNotesExample(
+    to: string,
+    from: string,
+    faucetId: string,
+    amount: bigint, // assuming amount is in base denom 
+    isPrivate: boolean = false,
+) {
+    // imports and init the client
+    const { 
+        WebClient, 
+        AccountId,
+        Note,
+        NoteType,
+        NoteExecutionMode,
+        NoteAssets,
+        NoteAndArgsArray,
+        NoteAndArgs,
+        OutputNote,
+        FungibleAsset,
+        OutputNotesArray,
+        TransactionProver,
+        TransactionRequestBuilder,
+        Word,
+        Felt
+    } = await import("@demox-labs/miden-sdk");
+    const client = await WebClient.createClient(RPC_ENDPOINT);
+    const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
+
+    // make AccountId from bech32
+    const toAccountId = AccountId.fromBech32(to);
+    const fromAccountId = AccountId.fromBech32(from);
+    const faucetAccountId = AccountId.fromBech32(faucetId);
+
+    const noteType = isPrivate ? NoteType.Private : NoteType.Public;
+    const noteAssets = new NoteAssets([
+        new FungibleAsset(faucetAccountId, amount)
+    ])
+    const randomNums = crypto.getRandomValues(new Uint32Array(4));
+    const serialNum = Word.newFromFelts([
+        new Felt(BigInt(randomNums[0])),
+        new Felt(BigInt(randomNums[1])),
+        new Felt(BigInt(randomNums[2])),
+        new Felt(BigInt(randomNums[3]))
+    ]);
+    const p2idNote = Note.createP2IDNote(
+        accountId,
+        toAccountId,
+        noteAssets,
+        noteType,
+        serialNum,
+        new Felt(BigInt(0))
+    );
+
+    const outputP2ID = OutputNote.full(p2idNote);
+    let sendTxRequest = new TransactionRequestBuilder()
+        .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
+        .build()
+        
+    await client.submitTransaction(txResult, prover);
+
+    // now you can send the note via a side channel
+    // example: this wallet sends it via webrtc
+    // consmuption of unauthenticated notes
+
+    const noteAndArgs = new NoteAndArgs(p2idNote, null);
+    
+    const consumeRequest = new TransactionRequestBuilder()
+      .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteAndArgs]))
+      .build();
+
+    const consumeTransaction = await client.newTransaction(
+      receiver.id(),
+      consumeRequest,
+    );
+
+    await client.submitTransaction(consumeTransaction, prover); 
+
+    // terminate the client when done
+    client.terminate();
+}`;
+
+export const INDEXING_TX_CODE = `
+use miden_client::rpc::{TonicRpcClient, Endpoint};
+use std::collections::BTreeSet;
+
+
+async fn index_transactions() {
+    let endpoint = Endpoint::testnet();
+    let rpc: TonicRpcClient = TonicRpcClient::new(&endpoint, 100_000);
+
+    // create a vector of account ids to be tracked
+    let accounts_to_be_tracked = vec![];
+
+    // add note tags to be tracked
+    let btree_set = BtreeSet::new();
+
+    let mut last_sync_block = 0;
+
+    loop {
+        // the sync result returns the
+        // \`SyncStateInfo\` struct which has the transactions and note inclusions
+        let sync_reuslt = rpc
+            .sync_state(
+                last_sync_block.into(),
+                &accounts_to_be_tracked,
+                &btree_set,
+            )
+            .await
+            .expect("Sync failed");
+        last_sync_block = sync_result.chain_tip.as_u32();
+
+        // update the db here
+        // update_db_with_sync_result(sync_result).await; 
+
+        println!("Transactions {:?}", sync_result.transactions);
+        println!("Notes {:?}", sync_result.note_inclusions);
+    }
+
+}
+`

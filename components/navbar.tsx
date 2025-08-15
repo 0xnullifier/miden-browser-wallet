@@ -15,7 +15,7 @@ import {
 export function Navbar() {
     const blockNum = useMidenSdkStore((state) => state.blockNum);
     return (
-        <header className="w-full">
+        <header className="w-full sticky top-0 z-50 bg-background">
             <div className="max-w-6xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 {/* Mobile Layout */}
                 <div className="flex flex-col gap-4 sm:hidden">
@@ -68,7 +68,7 @@ export function Navbar() {
 
                 {/* Desktop Layout */}
                 <div className="hidden sm:block">
-                    <div className="relative flex items-center h-[48px]">
+                    <div className="relative flex items-center h-7">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-400/30 rounded-full min-w-[120px] justify-start">
                             <div className="flex items-center justify-center w-[14px] h-[14px]">
                                 <RotatingBlock
