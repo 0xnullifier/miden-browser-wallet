@@ -5,7 +5,7 @@ import React from "react";
 
 export default function Dashboard() {
     return (
-        <div>
+        <div className="w-full overflow-hidden">
             <QuickStart />
             <Concepts />
             <UseCase />
