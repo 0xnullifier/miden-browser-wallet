@@ -73,16 +73,16 @@ export const CodeBlock = ({
         : highlightLines;
 
     return (
-        <div className="relative w-full max-w-[50rem] rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-4 py-2 font-mono text-sm">
+        <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-4rem)] lg:max-w-[50rem] rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 sm:px-4 py-2 font-mono text-xs sm:text-sm overflow-hidden">
             <div className="flex flex-col gap-2 pb-2">
                 {tabsExist && (
                     <div className="flex justify-between items-center">
-                        <div className="flex overflow-x-auto">
+                        <div className="flex overflow-x-auto scrollbar-hide">
                             {tabs.map((tab, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setActiveTab(index)}
-                                    className={`px-3 !py-2 text-xs transition-colors font-sans border-b-2 ${activeTab === index
+                                    className={`px-2 sm:px-3 !py-2 text-xs transition-colors font-sans border-b-2 whitespace-nowrap flex-shrink-0 ${activeTab === index
                                         ? "text-gray-900 dark:text-white border-blue-500 bg-blue-50 dark:bg-blue-950/30"
                                         : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-transparent"
                                         }`}
@@ -93,48 +93,57 @@ export const CodeBlock = ({
                         </div>
                         <button
                             onClick={copyToClipboard}
-                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors font-sans ml-4"
+                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors font-sans ml-2 flex-shrink-0"
                         >
-                            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                            {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
                         </button>
                     </div>
                 )}
                 {!tabsExist && filename && (
                     <div className="flex justify-between items-center py-2">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{filename}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[70%]">{filename}</div>
                         <button
                             onClick={copyToClipboard}
-                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors font-sans"
+                            className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors font-sans flex-shrink-0"
                         >
-                            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                            {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
                         </button>
                     </div>
                 )}
             </div>
-            <SyntaxHighlighter
-                language={activeLanguage}
-                style={isDark ? oneDark : oneLight}
-                customStyle={{
-                    margin: 0,
-                    padding: 0,
-                    background: "transparent",
-                    fontSize: "0.875rem", // text-sm equivalent
-                }}
-                wrapLines={true}
-                showLineNumbers={true}
-                lineProps={(lineNumber) => ({
-                    style: {
-                        backgroundColor: activeHighlightLines.includes(lineNumber)
-                            ? "rgba(255,255,255,0.1)"
-                            : "transparent",
-                        display: "block",
-                        width: "100%",
-                    },
-                })}
-                PreTag="div"
-            >
-                {String(activeCode)}
-            </SyntaxHighlighter>
+            <div className="overflow-x-auto scrollbar-hide">
+                <SyntaxHighlighter
+                    language={activeLanguage}
+                    style={isDark ? oneDark : oneLight}
+                    customStyle={{
+                        margin: 0,
+                        padding: 0,
+                        background: "transparent",
+                        fontSize: "0.65rem", // smaller font size for mobile
+                        lineHeight: "1.2",
+                        minWidth: "max-content",
+                    }}
+                    wrapLines={false}
+                    showLineNumbers={true}
+                    lineNumberStyle={{
+                        fontSize: "0.6rem",
+                        minWidth: "2rem",
+                        paddingRight: "0.5rem"
+                    }}
+                    lineProps={(lineNumber) => ({
+                        style: {
+                            backgroundColor: activeHighlightLines.includes(lineNumber)
+                                ? "rgba(255,255,255,0.1)"
+                                : "transparent",
+                            display: "block",
+                            minWidth: "max-content",
+                        },
+                    })}
+                    PreTag="div"
+                >
+                    {String(activeCode)}
+                </SyntaxHighlighter>
+            </div>
         </div>
     );
 };
