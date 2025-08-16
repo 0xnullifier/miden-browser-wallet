@@ -1,9 +1,14 @@
+import { Concepts } from "@/components/docs/concepts";
+import { QuickStart } from "@/components/docs/quickstart";
+import { UseCase } from "@/components/docs/use-case";
 import React from "react";
 
 export default function Dashboard() {
     return (
-        <div className="flex justify-center items-center text-2xl font-light" >
-            Coming Soon
+        <div className="w-full overflow-hidden">
+            <QuickStart />
+            <Concepts />
+            <UseCase />
         </div>
     )
 }

@@ -1,24 +1,42 @@
 import { FAUCET_ID as _, DECIMALS, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
 
 export async function send(client: any, from: string, to: string, amount: number, isPrivate: boolean, delegate?: boolean) {
-    const { WebClient, AccountId, NoteType, TransactionProver } = await import("@demox-labs/miden-sdk");
+    const { WebClient, AccountId, NoteType, TransactionProver, Note, NoteAssets, FungibleAsset, Felt, Word, TransactionRequestBuilder, OutputNotesArray, OutputNote } = await import("@demox-labs/miden-sdk");
     if (client instanceof WebClient) {
         const noteType = isPrivate ? NoteType.Private : NoteType.Public;
         const FAUCET_ID = AccountId.fromBech32(_);
         const accountId = AccountId.fromBech32(from)
         const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : AccountId.fromBech32(to);
         const amountInBaseDenom = BigInt(Math.trunc(amount * DECIMALS))
-        const sendTxRequest = client.newSendTransactionRequest(
+        // const sendTxRequest = client.newSendTransactionRequest(
+        //     accountId,
+        //     toAccountId,
+        //     FAUCET_ID,
+        //     noteType,
+        //     amountInBaseDenom
+        // )
+        const noteAssets = new NoteAssets([
+            new FungibleAsset(FAUCET_ID, amountInBaseDenom)
+        ])
+        const randomNums = crypto.getRandomValues(new Uint32Array(4));
+        const serialNum = Word.newFromFelts([new Felt(BigInt(randomNums[0])), new Felt(BigInt(randomNums[1])), new Felt(BigInt(randomNums[2])), new Felt(BigInt(randomNums[3]))]);
+        const p2idNote = Note.createP2IDNote(
             accountId,
             toAccountId,
-            FAUCET_ID,
+            noteAssets,
             noteType,
-            amountInBaseDenom
-        )
+            serialNum,
+            new Felt(BigInt(0))
+        );
+        const outputP2ID = OutputNote.full(p2idNote);
+        let sendTxRequest = new TransactionRequestBuilder()
+            .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
+            .build()
+
         const prover = delegate ? TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT) : null
         let txResult = await client.newTransaction(accountId, sendTxRequest);
         await client.submitTransaction(txResult, prover);
-        return txResult
+        return { tx: txResult, note: p2idNote };
     }
 }
 

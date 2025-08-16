@@ -91,9 +91,8 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
 
         try {
-            const tx = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
+            const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
-
             if (isPrivate) {
                 const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
                 // wait 10 seconds for the tx to be commited
@@ -264,7 +263,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         // For non-private payments, proceed directly
         try {
-            const tx = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
+            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
         } catch (error) {
             console.error("Error sending transaction:", error);
