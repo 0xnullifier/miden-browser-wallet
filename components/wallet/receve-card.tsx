@@ -25,11 +25,11 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
 
     return (
         <div className="w-full">
-            <Card className="backdrop-blur-sm shadow-lg shadow-primary/20 ring-1 ring-primary/10">
+            <Card className="backdrop-blur-sm ring-1 ring-primary/10">
                 <CardContent className="space-y-6">
                     {/* QR Code */}
                     <div className="flex justify-center ">
-                        <div className="p-4 bg-white rounded-xl border border-gray-200">
+                        <div className="p-4 bg-white border border-gray-200">
                             <div className="w-40 h-40 bg-white flex items-center justify-center ">
                                 <QRCodeSVG
                                     value={walletAddress}
@@ -44,7 +44,7 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
 
                     {/* Address */}
                     <div className="space-y-3">
-                        <div className="flex items-center gap-2 p-3  rounded-lg border border-primary/20 bg-primary/10">
+                        <div className="flex items-center gap-2 p-3 border border-primary/20 bg-primary/10">
                             <code className="flex-1 text-sm font-mono break-all">{walletAddress}</code>
                             <Button
                                 size="sm"

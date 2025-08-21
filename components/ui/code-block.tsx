@@ -73,7 +73,7 @@ export const CodeBlock = ({
         : highlightLines;
 
     return (
-        <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-4rem)] lg:max-w-[50rem] rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 sm:px-4 py-2 font-mono text-xs sm:text-sm overflow-hidden">
+        <div className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-4rem)] lg:max-w-[50rem] bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 sm:px-4 py-2 font-mono text-xs sm:text-sm overflow-hidden">
             <div className="flex flex-col gap-2 pb-2">
                 {tabsExist && (
                     <div className="flex justify-between items-center">
@@ -111,39 +111,31 @@ export const CodeBlock = ({
                     </div>
                 )}
             </div>
-            <div className="overflow-x-auto scrollbar-hide">
-                <SyntaxHighlighter
-                    language={activeLanguage}
-                    style={isDark ? oneDark : oneLight}
-                    customStyle={{
-                        margin: 0,
-                        padding: 0,
-                        background: "transparent",
-                        fontSize: "0.65rem", // smaller font size for mobile
-                        lineHeight: "1.2",
-                        minWidth: "max-content",
-                    }}
-                    wrapLines={false}
-                    showLineNumbers={true}
-                    lineNumberStyle={{
-                        fontSize: "0.6rem",
-                        minWidth: "2rem",
-                        paddingRight: "0.5rem"
-                    }}
-                    lineProps={(lineNumber) => ({
-                        style: {
-                            backgroundColor: activeHighlightLines.includes(lineNumber)
-                                ? "rgba(255,255,255,0.1)"
-                                : "transparent",
-                            display: "block",
-                            minWidth: "max-content",
-                        },
-                    })}
-                    PreTag="div"
-                >
-                    {String(activeCode)}
-                </SyntaxHighlighter>
-            </div>
+            <SyntaxHighlighter
+                language={activeLanguage}
+                style={isDark ? oneDark : oneLight}
+                customStyle={{
+                    margin: 0,
+                    padding: 0,
+                    background: "transparent",
+                    fontSize: "0.875rem", // text-sm equivalent
+                }}
+                wrapLines={false}
+                showLineNumbers={true}
+                lineProps={(lineNumber) => ({
+                    style: {
+                        backgroundColor: activeHighlightLines.includes(lineNumber)
+                            ? "rgba(255,255,255,0.1)"
+                            : "transparent",
+                        display: "block",
+                        width: "100%",
+                    },
+
+                })}
+                PreTag="div"
+            >
+                {String(activeCode)}
+            </SyntaxHighlighter>
         </div>
     );
 };

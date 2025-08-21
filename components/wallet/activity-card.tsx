@@ -161,7 +161,7 @@ export function ActivityCardList() {
     if (loading) {
         return (
             <div className="flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             </div>
         )
     }
@@ -169,7 +169,7 @@ export function ActivityCardList() {
     if (transactions.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-muted/50 flex items-center justify-center mb-4">
                     <Clock className="w-6 h-6 text-muted-foreground/60" />
                 </div>
                 <p className="text-muted-foreground/80 text-sm">No transactions yet</p>

@@ -8,7 +8,16 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  reactStrictMode: false
+  reactStrictMode: false,
+  async redirects() {
+    return [
+      {
+        source: "/wallet",
+        destination: "/",
+        permanent: true,
+      }
+    ]
+  },
 };
 
 export default nextConfig;

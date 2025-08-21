@@ -6,21 +6,21 @@ export const renderTransactionTypeBadge = (txKind: string) => {
     switch (txKind) {
         case 'send':
             return (
-                <Badge className="rounded-3xl bg-red-500/10 text-red-600 border-red-500/20 backdrop-blur-sm hover:bg-red-500/20 transition-all duration-200 shadow-lg pr-4 py-2 text-sm font-semibold">
+                <Badge className="bg-red-500/10 text-red-600 border-red-500/20 backdrop-blur-sm hover:bg-red-500/20 transition-all duration-200 pr-4 py-2 text-sm font-semibold">
                     <ArrowUpRight className="w-4 h-4" />
                     Send
                 </Badge>
             );
         case 'receive':
             return (
-                <Badge className="rounded-3xl bg-green-500/10 text-green-600 border-green-500/20 backdrop-blur-sm hover:bg-green-500/20 transition-all duration-200 shadow-lg  pr-4 py-2 text-sm font-semibold">
+                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 backdrop-blur-sm hover:bg-green-500/20 transition-all duration-200  pr-4 py-2 text-sm font-semibold">
                     <ArrowDownLeft className="w-4 h-4" />
                     Receive
                 </Badge>
             );
         case 'faucet_request':
             return (
-                <Badge className="rounded-3xl bg-blue-500/10 text-blue-600 border-blue-500/20 backdrop-blur-sm hover:bg-blue-500/20 transition-all duration-200 shadow-lg pr-4 py-2 text-sm font-semibold">
+                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 backdrop-blur-sm hover:bg-blue-500/20 transition-all duration-200 pr-4 py-2 text-sm font-semibold">
                     <Droplets className="w-4 h-4" />
                     Faucet Request
                 </Badge>

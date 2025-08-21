@@ -178,7 +178,7 @@ export function WalletDropdown() {
                             <input
                                 id="prover-url"
                                 type="text"
-                                className="border rounded px-3 py-2 text-sm"
+                                className="border px-3 py-2 text-sm"
                                 value={localStorage.getItem("transactionProverUrl") || ""}
                                 onChange={e => {
                                     localStorage.setItem("transactionProverUrl", e.target.value)
@@ -223,11 +223,11 @@ function Component({ handleImportAccount, loading: importLoading }: { handleImpo
     };
 
     return (
-        <Card className="shadow-xl ">
+        <Card className="">
             <CardContent className="flex flex-col items-center">
                 <div
-                    className={`transition-colors duration-200 border-primary border-2 border-dashed rounded-xl flex flex-col gap-2 items-center cursor-pointer w-full max-w-xs ${dragActive
-                        ? "border-primary bg-primary/10 shadow-lg"
+                    className={`transition-colors duration-200 border-primary border-2 border-dashed flex flex-col gap-2 items-center cursor-pointer w-full max-w-xs ${dragActive
+                        ? "border-primary bg-primary/10"
                         : "border-muted bg-background"
                         }`}
                     onDragOver={handleDragOver}

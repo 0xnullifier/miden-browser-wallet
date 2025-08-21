@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { Inter, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Navbar } from "@/components/navbar";
@@ -16,10 +16,10 @@ const geistSans = Inter({
   subsets: ["latin"],
 });
 
-const geistMono = IBM_Plex_Mono({
+const geistMono = DM_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700"],
+  weight: ['300', '400', '500'],
   style: ["normal", "italic"],
 });
 

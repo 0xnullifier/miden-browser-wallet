@@ -43,25 +43,25 @@ export function Navbar() {
                             href="/"
                             className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
                         >
-                            Home
+                            HOME
                         </Link>
                         <Link
                             href="/wallet"
                             className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
                         >
-                            Wallet
+                            WALLET
                         </Link>
                         <Link
                             href="/dashboard"
                             className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
                         >
-                            Dashboard
+                            DASHBOARD
                         </Link>
                         <Link
                             href="/docs"
                             className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
                         >
-                            Docs
+                            DOCS
                         </Link>
                     </nav>
                 </div>
@@ -69,7 +69,7 @@ export function Navbar() {
                 {/* Desktop Layout */}
                 <div className="hidden sm:block">
                     <div className="relative flex items-center h-7">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-400/30 rounded-full min-w-[120px] justify-start">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-400/30 min-w-[120px] justify-start">
                             <div className="flex items-center justify-center w-[14px] h-[14px]">
                                 <RotatingBlock
                                     blockSize={14}
@@ -88,26 +88,20 @@ export function Navbar() {
                                 href="/"
                                 className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
                             >
-                                Home
-                            </Link>
-                            <Link
-                                href="/wallet"
-                                className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
-                            >
-                                Wallet
+                                WALLET
                             </Link>
                             <Link
                                 href="/dashboard"
                                 className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
                             >
-                                Dashboard
+                                DASHBOARD
                             </Link>
 
                             <Link
                                 href="/docs"
                                 className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
                             >
-                                Docs
+                                DOCS
                             </Link>
                         </nav>
 

@@ -35,7 +35,7 @@ export function Faucet({ onClose }: { onClose: () => void }) {
     }
     return (
         <div className="w-full">
-            <Card className="bg-card border-border shadow-lg shadow-primary/20 ring-1 ring-primary/10">
+            <Card className="bg-card border-border ring-1 ring-primary/10">
                 <CardContent className="space-y-3 p-4 pt-0">
                     <div className="flex flex-col gap-2">
                         <div className="flex gap-2 mb-2 items-center justify-between px-2">
@@ -45,7 +45,7 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                                     <button
                                         key={val}
                                         className={
-                                            "rounded-full text-center px-2 py-1 text-xs border " +
+                                            "text-center px-2 py-1 text-xs border " +
                                             (amount === val.toString()
                                                 ? "bg-primary text-primary-foreground border-primary"
                                                 : "bg-background border-neutral-400 dark:border-muted")

@@ -121,7 +121,7 @@ export function Dashboard() {
             <div className="block md:hidden pt-6 space-y-6">
                 {/* Chart */}
                 <div className="space-y-3">
-                    <h3 className="text-sm text-muted-foreground">Transaction Analytics</h3>
+                    <h3 className="text-sm text-muted-foreground">TRANSACTION ANALYTICS</h3>
                     <ChartLineInteractive />
                 </div>
 
@@ -135,7 +135,7 @@ export function Dashboard() {
             <div className="hidden md:grid grid-cols-5 gap-8 pt-8">
                 {/* Chart */}
                 <div className="col-span-3 space-y-3">
-                    <h3 className="text-muted-foreground">Transaction Analytics</h3>
+                    <h3 className="text-muted-foreground text-sm">TRANSACTION ANALYTICS</h3>
                     <ChartLineInteractive />
                 </div>
 
@@ -281,9 +281,9 @@ function TransactionList({ transactions, isMobile = false }: { transactions: Bac
 
     return (
         <div className="space-y-3">
-            <h3 className="text-sm text-muted-foreground">Latest Transactions</h3>
+            <h3 className="text-sm text-muted-foreground">LATEST TRANSACTIONS</h3>
             <div className="border border-border rounded-lg overflow-hidden">
-                <ScrollArea className={`${isMobile ? 'h-[300px]' : 'h-[400px]'} w-full bg-card/50`}>
+                <ScrollArea className={`h-[348px] w-full bg-card/50`}>
                     <AnimatePresence mode="popLayout">
                         {transactions.map((tx, i) => (
                             <motion.div
@@ -301,14 +301,18 @@ function TransactionList({ transactions, isMobile = false }: { transactions: Bac
                                 layout
                             >
                                 <div
-                                    className="flex flex-col space-y-2 p-3 hover:bg-muted/20 transition-colors cursor-pointer border-b border-border/50 last:border-b-0"
+                                    className="flex p-3 justify-between hover:bg-muted/20 transition-colors cursor-pointer border-b border-border/90"
                                     onClick={() => window.open(`/dashboard/tx/${tx.tx_id}`, '_blank')}
                                 >
-                                    <div className="text-primary">{`${tx.tx_id.slice(0, 8)}...${tx.tx_id.slice(-8)}`}</div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">
-                                            {new Date(Number(tx.timestamp) * 1000).toLocaleTimeString()}
-                                        </span>
+                                    <div className='flex flex-col space-y-2'>
+                                        <div className="text-primary text-sm">{`${tx.tx_id.slice(0, 8)}...${tx.tx_id.slice(-8)}`}</div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">
+                                                {new Date(Number(tx.timestamp) * 1000).toLocaleTimeString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className='h-3 mt-3'>
                                         {formatTxKind(tx.tx_kind)}
                                     </div>
                                 </div>

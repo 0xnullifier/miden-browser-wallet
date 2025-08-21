@@ -291,7 +291,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
     return (
         <div className="w-full">
-            <Card className="bg-card border-border shadow-lg shadow-primary/20 ring-1 ring-primary/10">
+            <Card className="bg-card border-border ring-1 ring-primary/10">
                 <CardContent className="space-y-5">
                     {/* Amount Field */}
                     <div className="space-y-2">
@@ -314,7 +314,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                             />
                             <button
                                 type="button"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white shadow focus:outline-none"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white focus:outline-none"
                                 onClick={() => setAmount(balance ? balance.toString() : "")}
                                 tabIndex={-1}
                             >
