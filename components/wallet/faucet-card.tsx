@@ -84,9 +84,10 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                     )}
 
                     <Button
-                        className="w-full h-10 text-sm font-medium flex items-center justify-center"
+                        className="w-full h-10 text-sm font-medium flex items-center justify-center bg-primary"
                         disabled={!amount || faucetLoading || showAlert}
                         onClick={onMint}
+                        variant="default"
                     >
                         {faucetLoading ? (
                             <Loader2 className="animate-spin h-4 w-4 mr-2" />
