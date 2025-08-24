@@ -12,6 +12,12 @@ import {
 } from "@/components/ui/tooltip"
 
 
+const NAV_ITEMS = [
+    { name: "WALLET", href: "/" },
+    { name: "DASHBOARD", href: "/dashboard" },
+    { name: "DOCS", href: "/docs" },
+]
+
 export function Navbar() {
     const blockNum = useMidenSdkStore((state) => state.blockNum);
     return (
@@ -39,30 +45,13 @@ export function Navbar() {
 
                     {/* Navigation links row */}
                     <nav className="flex items-center justify-center gap-4 overflow-x-auto">
-                        <Link
-                            href="/"
-                            className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
-                        >
-                            HOME
-                        </Link>
-                        <Link
-                            href="/wallet"
-                            className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
-                        >
-                            WALLET
-                        </Link>
-                        <Link
-                            href="/dashboard"
-                            className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
-                        >
-                            DASHBOARD
-                        </Link>
-                        <Link
-                            href="/docs"
-                            className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
-                        >
-                            DOCS
-                        </Link>
+                        {NAV_ITEMS.map((item) => (
+                            <NavMobileItem
+                                key={item.name}
+                                name={item.name}
+                                href={item.href}
+                            />
+                        ))}
                     </nav>
                 </div>
 
@@ -84,25 +73,13 @@ export function Navbar() {
                         </div>
 
                         <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-6">
-                            <Link
-                                href="/"
-                                className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
-                            >
-                                WALLET
-                            </Link>
-                            <Link
-                                href="/dashboard"
-                                className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
-                            >
-                                DASHBOARD
-                            </Link>
-
-                            <Link
-                                href="/docs"
-                                className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
-                            >
-                                DOCS
-                            </Link>
+                            {NAV_ITEMS.map((item) => (
+                                <NavDesktopItem
+                                    key={item.name}
+                                    name={item.name}
+                                    href={item.href}
+                                />
+                            ))}
                         </nav>
 
                         <div className="flex gap-5 items-center min-w-[48px] justify-end ml-auto">
@@ -121,5 +98,31 @@ export function Navbar() {
                 </div>
             </div>
         </header>
+    )
+}
+
+function NavDesktopItem(
+    { name, href }: { name: string; href: string }
+) {
+    return (
+        <Link
+            href={href}
+            className="text-[14px] font-normal text-muted-foreground hover:text-primary transition-colors"
+        >
+            {name}
+        </Link>
+    )
+}
+
+function NavMobileItem(
+    { name, href }: { name: string; href: string }
+) {
+    return (
+        <Link
+            href={href}
+            className="text-[13px] font-normal text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+        >
+            {name}
+        </Link>
     )
 }

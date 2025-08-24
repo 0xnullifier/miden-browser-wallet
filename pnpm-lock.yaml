@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@demox-labs/miden-sdk':
-        specifier: ^0.10.1
+        specifier: 0.10.1
         version: 0.10.1(chai@5.2.1)
       '@radix-ui/react-accordion':
         specifier: ^1.2.11
