@@ -1,31 +1,23 @@
+import { toast } from "sonner";
 import { FAUCET_ID as _, DECIMALS, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
+import { sucessTxToast } from "@/components/success-tsx-toast";
 
 export async function send(client: any, from: string, to: string, amount: number, isPrivate: boolean, delegate?: boolean) {
-    const { WebClient, AccountId, NoteType, TransactionProver, Note, NoteAssets, FungibleAsset, Felt, Word, TransactionRequestBuilder, OutputNotesArray, OutputNote } = await import("@demox-labs/miden-sdk");
+    const { WebClient, AccountId, NoteType, TransactionProver, Note, NoteAssets, FungibleAsset, Felt, TransactionRequestBuilder, OutputNotesArray, OutputNote } = await import("@demox-labs/miden-sdk");
     if (client instanceof WebClient) {
         const noteType = isPrivate ? NoteType.Private : NoteType.Public;
-        const FAUCET_ID = AccountId.fromBech32(_);
+        const FAUCET_ID = AccountId.fromHex(_);
         const accountId = AccountId.fromBech32(from)
         const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : AccountId.fromBech32(to);
         const amountInBaseDenom = BigInt(Math.trunc(amount * DECIMALS))
-        // const sendTxRequest = client.newSendTransactionRequest(
-        //     accountId,
-        //     toAccountId,
-        //     FAUCET_ID,
-        //     noteType,
-        //     amountInBaseDenom
-        // )
         const noteAssets = new NoteAssets([
             new FungibleAsset(FAUCET_ID, amountInBaseDenom)
         ])
-        const randomNums = crypto.getRandomValues(new Uint32Array(4));
-        const serialNum = Word.newFromFelts([new Felt(BigInt(randomNums[0])), new Felt(BigInt(randomNums[1])), new Felt(BigInt(randomNums[2])), new Felt(BigInt(randomNums[3]))]);
         const p2idNote = Note.createP2IDNote(
             accountId,
             toAccountId,
             noteAssets,
             noteType,
-            serialNum,
             new Felt(BigInt(0))
         );
         const outputP2ID = OutputNote.full(p2idNote);
@@ -40,31 +32,38 @@ export async function send(client: any, from: string, to: string, amount: number
     }
 }
 
-export async function importPrivateNote(noteBytes: any) {
-    const { WebClient, NoteFilter, NoteFilterTypes } = await import("@demox-labs/miden-sdk")
+export async function importNote(noteBytes: any, receiver: string) {
+    const { TransactionProver, WebClient, Note, NoteAndArgs, NoteAndArgsArray, TransactionRequestBuilder, AccountId } = await import("@demox-labs/miden-sdk")
     const client = await WebClient.createClient(RPC_ENDPOINT)
+    const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
     try {
-        const prevCount = (await client.getConsumableNotes()).length;
-        let afterCount = prevCount;
-        let retryNumber = 0;
-        // somtimes the import is failed due to the note not being ready yet, so we retry until the note is imported
-        while (afterCount !== prevCount + 1 && retryNumber < 10) {
-            await client.importNote(noteBytes)
-            afterCount = (await client.getConsumableNotes()).length;
-            console.log("Trying to import, number:", retryNumber);
-            retryNumber += 1;
-        }
-        console.log(afterCount)
+        const p2idNote = Note.deserialize(noteBytes);
+        console.log("Deserialized Note:", p2idNote);
+        console.log("Receiver Account ID:", receiver);
+        const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
+
+        const consumeRequest = new TransactionRequestBuilder()
+            .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
+            .build();
+
+        const txExecutionResult = await client.newTransaction(
+            AccountId.fromBech32(receiver),
+            consumeRequest,
+        );
+        const digest = txExecutionResult.executedTransaction().id().toString();
+
+        await client.submitTransaction(txExecutionResult, prover);
+        sucessTxToast("Received note successfully 🚀", digest)
     } catch (error) {
-        console.error("Error importing note:", error);
-        throw new Error("Failed to import note. Please check the note format and try again.");
+        console.error("Error importing private note:", error);
     } finally {
         client.terminate()
     }
+
 }
 
 export async function sendToMany(sender: string, receipients: { to: string, amount: bigint }[], delegate: boolean = true) {
-    const { WebClient, Note, AccountId, NoteAssets, FungibleAsset, NoteType, Word, Felt, OutputNote, OutputNotesArray, TransactionRequestBuilder, TransactionProver } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Note, AccountId, NoteAssets, FungibleAsset, NoteType, Felt, OutputNote, OutputNotesArray, TransactionRequestBuilder, TransactionProver } = await import("@demox-labs/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
     const faucetId = AccountId.fromBech32(_);
     try {
@@ -74,9 +73,7 @@ export async function sendToMany(sender: string, receipients: { to: string, amou
             const noteAssets = new NoteAssets([
                 new FungibleAsset(faucetId, amount)
             ])
-            const randomNums = crypto.getRandomValues(new Uint32Array(4));
-            const serialNum = Word.newFromFelts([new Felt(BigInt(randomNums[0])), new Felt(BigInt(randomNums[1])), new Felt(BigInt(randomNums[2])), new Felt(BigInt(randomNums[3]))]);
-            const p2idNote = Note.createP2IDNote(senderAccountId, toAccountId, noteAssets, NoteType.Public, serialNum, new Felt(BigInt(0)));
+            const p2idNote = Note.createP2IDNote(senderAccountId, toAccountId, noteAssets, NoteType.Public, new Felt(BigInt(0)));
             return OutputNote.full(p2idNote);
         }))
         const txRequest = new TransactionRequestBuilder()

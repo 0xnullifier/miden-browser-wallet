@@ -37,13 +37,17 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const [copied, setCopied] = useState(false)
     const account = useMidenSdkStore((state) => state.account)
     const balance = useBalanceStore((state) => state.balance)
+
     const [receiverOfflineDialogOpen, setReceiverOfflineDialog] = useState(false)
     const clientRef = useRef<any | null>(null);
+
     const [retryNumber, setRetryNumber] = useState<number>(0)
     const [retryingDialog, setRetryingDialog] = useState(false)
-    const [retryNow, setRetryNow] = useState(false)
     const [retryIntervalId, setRetryIntervalId] = useState<NodeJS.Timeout | null>(null)
     const [doItAsync, setDoItAsync] = useState(false)
+
+    // RECEIVER ONLINE STATE EVEN FOR PUBLIC NOTE SENDING
+    const [receiverOnline, setReceiverOnline] = useState(false)
 
     const ws = useWebRtcStore((state) => state.webSocket);
     const dc = useWebRtcStore((state) => state.dataChannel);
@@ -65,6 +69,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     }, [recipient])
 
     const createOffer = async () => {
+        console.log("Creating WebRTC offer...", isPrivate)
         if (ws && pc) {
             try {
                 const offer = await pc.createOffer()
@@ -93,18 +98,8 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         try {
             const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
-            if (isPrivate) {
-                const outputNote = tx.executedTransaction().outputNotes().getNote(0).id()
-                // wait 10 seconds for the tx to be commited
-                await new Promise((resolve) => setTimeout(resolve, 10000));
-                const exportedNote = await clientRef.current.exportNote(outputNote.toString(), "Full")
-                setNoteBytes(exportedNote)
-                setTx(tx)
-            } else {
-                setLoading(false)
-                setAmount("")
-                setRecipient("")
-            }
+            setNoteBytes(Array.from(note.serialize()))
+            setTx(tx)
         } catch (error) {
             console.error("Error sending transaction:", error);
             toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
@@ -119,6 +114,22 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
     }
 
+    const processOfflineTransaction = async () => {
+        try {
+            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
+            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
+        }
+        catch (error) {
+            console.error("Error sending transaction:", error);
+            toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
+        } finally {
+            setLoading(false)
+            setAmount("")
+            setRecipient("")
+            clientRef.current.terminate()
+        }
+    }
+
 
     useEffect(() => {
         // Only send note bytes if we're connected and not going offline
@@ -127,6 +138,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             dc.send(JSON.stringify({
                 type: MESSAGE_TYPE.NOTE_BYTES,
                 bytes: Array.from(noteBytes),
+                receiver: recipient
             }))
         }
 
@@ -149,7 +161,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             setNoteBytes(null)
             setTx(null)
             setBase64NoteStr(null)
-            toast.success("Private note sent successfully")
+            toast.success("Private note sent successfully", { position: "top-right" })
             setAmount("")
             setRecipient("")
             dc.close()
@@ -162,6 +174,12 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     useEffect(() => {
         console.log("Stage changed:", stage)
         if (stage === "receiver-offline" && !doItAsync && !retryingDialog && retryNumber === 0) {
+            if (!isPrivate) {
+                console.log("Receiver is offline, no unauth note :( ...")
+                // This is the case when we try sending a public note with unauthenticated notes
+                processOfflineTransaction()
+                return;
+            }
             console.log("Receiver is offline, starting retry mechanism")
             if (retryIntervalId) {
                 clearInterval(retryIntervalId)
@@ -208,11 +226,9 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             }
             setRetryingDialog(false)
 
-            // If user chose to continue offline or retries failed, process transaction
             if (!noteBytes && !tx) {
                 processTxAfterConnection()
             } else if (noteBytes) {
-                // If transaction already processed, create the offline link
                 const base64Note = btoa(String.fromCharCode(...noteBytes))
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
@@ -252,28 +268,14 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             return;
         }
 
-        // For private payments, try WebSocket connection first
         if (isPrivate) {
             toast.info("Establishing connection for private note transfer...", { position: "top-right" })
             setStage("webrtcStarted")
-            await createOffer()
-            // Don't proceed with transaction yet - wait for connection or user decision
-            return;
+        } else {
+            console.log("Sending public note transaction directly...")
         }
 
-        // For non-private payments, proceed directly
-        try {
-            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
-            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
-        } catch (error) {
-            console.error("Error sending transaction:", error);
-            toast.error("Failed to send transaction: " + (error instanceof Error ? error.message : "Unknown error"))
-        } finally {
-            setLoading(false)
-            setAmount("")
-            setRecipient("")
-            clientRef.current.terminate()
-        }
+        await createOffer()
     }
 
     const copyToClipboard = async (text: string) => {

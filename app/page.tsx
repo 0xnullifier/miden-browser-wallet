@@ -9,7 +9,6 @@ import { toShowType, WalletCard } from "@/components/wallet/wallet-card"
 import { Faucet } from "@/components/wallet/faucet-card"
 import { ReceiveCard } from "@/components/wallet/receve-card"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
-import { toast } from "sonner"
 
 
 export default function WalletInterface() {

@@ -22,7 +22,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
 
 
     loadBalance: async (client, _accountId) => {
-        const { AccountId } = await import("@demox-labs/miden-sdk");
+        const { AccountId, Address } = await import("@demox-labs/miden-sdk");
         const accountId = AccountId.fromBech32(_accountId);
         const { consumingLoading } = get()
         set({ loading: true });
@@ -31,7 +31,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
             set({ loading: false, balance: BigInt(0) });
             throw new Error("Account Record not found");
         }
-        const balance = accountRecord.vault().getBalance(AccountId.fromBech32(FAUCET_ID));
+        const balance = accountRecord.vault().getBalance(AccountId.fromHex(FAUCET_ID));
         set({ loading: false, balance });
 
         const consumableNotes = await client.getConsumableNotes();

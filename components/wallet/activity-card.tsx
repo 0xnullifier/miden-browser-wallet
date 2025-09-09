@@ -8,7 +8,7 @@ import { ArrowUpRight, ArrowDownLeft, Droplets, Shield, Clock, XCircle } from "l
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { DECIMALS, EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
+import { BECH32_PREFIX, DECIMALS, EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
 import { UITransaction } from "@/store/transaction"
 
 
@@ -134,9 +134,9 @@ export function ActivityCardList() {
             console.log("Fetching transactions for account:", account);
             setLoading(true)
             try {
-                const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } = await import("@demox-labs/miden-sdk");
+                const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient, NetworkId } = await import("@demox-labs/miden-sdk");
                 if (clientRef.current instanceof WebClient) {
-                    const transactionRecords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toBech32() === account);
+                    const transactionRecords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toBech32(NetworkId.Devnet, 0) === account);
                     const inputNotes = (await clientRef.current.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
                     const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
                         if (tr.outputNotes().notes().length > 0) {
