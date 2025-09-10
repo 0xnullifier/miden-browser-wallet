@@ -96,6 +96,7 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
 
 export function ActivityCardList() {
     const transactions = useTransactionStore((state) => state.transactions)
+    console.log("Transactions in ActivityCardList:", transactions)
     const loadTransactions = useTransactionStore((state) => state.loadTransactions)
     const clientRef = useRef<any | null>(null);
     const account = useMidenSdkStore((state) => state.account)
@@ -136,7 +137,7 @@ export function ActivityCardList() {
             try {
                 const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient, NetworkId } = await import("@demox-labs/miden-sdk");
                 if (clientRef.current instanceof WebClient) {
-                    const transactionRecords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toBech32(NetworkId.Devnet, 0) === account);
+                    const transactionRecords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toBech32(NetworkId.Testnet, 0) === account);
                     const inputNotes = (await clientRef.current.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
                     const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
                         if (tr.outputNotes().notes().length > 0) {

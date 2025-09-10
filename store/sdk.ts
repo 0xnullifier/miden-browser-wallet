@@ -135,7 +135,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
             } else {
                 console.log("No saved account found, creating new account...");
                 const newAccount = await client.newWallet(AccountStorageMode.private(), true);
-                const newAccountId = newAccount.id().toBech32(NetworkId.Devnet, 0);
+                const newAccountId = newAccount.id().toBech32(NetworkId.Testnet, 0);
                 setAccount(newAccountId);
                 localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccountId)
                 console.log("New account created and saved:", newAccount);
@@ -154,7 +154,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
             }
             const newAccount = await client.newWallet(AccountStorageMode.private(), true)
             console.log("New account generated:", newAccount);
-            setAccount(newAccount.id().toBech32(NetworkId.Devnet, 0));
+            setAccount(newAccount.id().toBech32(NetworkId.Testnet, 0));
             console.log("New account created:", newAccount);
             localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccount.serialize().toString())
             return newAccount;

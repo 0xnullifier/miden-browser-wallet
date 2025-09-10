@@ -18,7 +18,6 @@ export interface TransactionStore {
     loadTransactions: (record: { tr: any, inputNote: any | undefined }[]) => Promise<void>;
 }
 function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNote: any | undefined }): UITransaction {
-    console.log(inputNote)
     if (inputNote === undefined || inputNote.length === 0) {
         const outputNotes = tr.outputNotes().notes().map((note) => note.intoFull())
         const amount = outputNotes.reduce((acc: bigint, note) => {
@@ -28,7 +27,7 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
         console.log(amount)
         const statusObject = tr.transactionStatus()
         return {
-            id: tr.id().toString(),
+            id: tr.id().toHex(),
             type: "Outgoing",
             amount,
             timestamp: tr.blockNum().toString(),
@@ -47,7 +46,7 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
         const statusObject = tr.transactionStatus()
         const transactionType = inputNote[0].metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
         return {
-            id: tr.id().toString(),
+            id: tr.id().toHex(),
             type: transactionType,
             amount: amount,
             timestamp: tr.blockNum().toString(),

@@ -71,7 +71,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
             const amountInBaseDenom = BigInt(Math.trunc(Number(amount) * DECIMALS))
             const txId = await axios.get(FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()))
             console.log("Faucet request successful:", txId.data);
-            sucessTxToast("Faucet used successfully", txId.data);
+            sucessTxToast("Faucet used successfully", txId.data.replaceAll(' ', ''));
         } catch (error) {
             console.error("Faucet request failed:", error);
         } finally {
