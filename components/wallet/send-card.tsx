@@ -97,7 +97,8 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         try {
             const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
-            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
+            console.log(tx.executedTransaction().id().toHex())
+            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
             setNoteBytes(Array.from(note.serialize()))
             setTx(tx)
         } catch (error) {
@@ -117,7 +118,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const processOfflineTransaction = async () => {
         try {
             const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
-            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toString())
+            sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
         }
         catch (error) {
             console.error("Error sending transaction:", error);
