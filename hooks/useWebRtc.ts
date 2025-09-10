@@ -1,13 +1,12 @@
 "use client";
 
-import { importPrivateNote } from "@/lib/actions";
-import { RPC_ENDPOINT, WEBSOCKET_URL } from "@/lib/constants";
+import { importNote } from "@/lib/actions";
+import { WEBSOCKET_URL } from "@/lib/constants";
 import { MESSAGE_TYPE, SendPrivateNoteStages, WEBRTC_MESSAGE_TYPE } from "@/lib/types";
-import { useBalanceStore } from "@/providers/balance-provider";
 import { useReceiverRef } from "@/providers/receiver-provider";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
 import { useWebRtcStore } from "@/providers/webrtc-provider";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] }
@@ -76,8 +75,8 @@ export const useWebRtc = () => {
             }
 
             ws.onclose = (event) => {
-                console.log("🔴 WebSocket closed!", event);
-                console.log("🔴 Close code:", event.code, "Reason:", event.reason);
+                console.log("🔴 WebSocket closed!",);
+                console.log("🔴 Close code:", event.code);
                 console.trace("WebSocket close trace");
             }
 
@@ -87,7 +86,6 @@ export const useWebRtc = () => {
 
             ws.onmessage = async (event) => {
                 const message = JSON.parse(event.data);
-                console.log("Received message:", message);
                 switch (message.type) {
                     case WEBRTC_MESSAGE_TYPE.RECEIVER_OFFLINE:
                         console.log("Receiver is offline, waiting for them to come online...");
@@ -221,7 +219,7 @@ const handleDataChannelMessage = async (event: MessageEvent<any>, dc: RTCDataCha
             break;
         case MESSAGE_TYPE.NOTE_BYTES:
             try {
-                await importPrivateNote(message.bytes)
+                await importNote(message.bytes, message.receiver);
                 dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
                 setStage("noteReceived")
             } catch (error) {

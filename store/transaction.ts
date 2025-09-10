@@ -1,7 +1,8 @@
 /// the transaction store
 
 import { FAUCET_ID } from "@/lib/constants";
-
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 export interface UITransaction {
     id: string,
     type: "Incoming" | "Outgoing" | "Faucet";
@@ -17,11 +18,10 @@ export interface TransactionStore {
     loadTransactions: (record: { tr: any, inputNote: any | undefined }[]) => Promise<void>;
 }
 function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNote: any | undefined }): UITransaction {
-    console.log(inputNote)
     if (inputNote === undefined || inputNote.length === 0) {
         const outputNotes = tr.outputNotes().notes().map((note) => note.intoFull())
         const amount = outputNotes.reduce((acc: bigint, note) => {
-            const fungibleAssets = note?.assets().fungibleAssets().filter((asset) => asset.faucetId().toBech32() === FAUCET_ID);
+            const fungibleAssets = note?.assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
             return acc + (fungibleAssets?.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0)) || BigInt(0));
         }, BigInt(0));
         console.log(amount)
@@ -39,7 +39,7 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
         }
 
         const amount = inputNote.reduce((acc: bigint, note) => {
-            const fungibleAssets = note.details().assets().fungibleAssets().filter((asset) => asset.faucetId().toBech32() === FAUCET_ID);
+            const fungibleAssets = note.details().assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
             return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0));
         }, BigInt(0));
 
@@ -55,9 +55,6 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
     }
 }
 
-
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
 
 export const createTransactionStore = () => create<TransactionStore, [["zustand/immer", never]]>(
     immer((set) => ({
