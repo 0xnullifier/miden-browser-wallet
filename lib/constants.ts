@@ -1,7 +1,7 @@
 const devnet = false; // if deploying in devnet turn to true
 export const BASE_API_URL = process.env.NODE_ENV == "development" ? "http://localhost:8000" : "https://api.midenbrowserwallet.com"
 export const MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY = "miden-web-wallet-v11.1.0";
-export const FAUCET_ID = "0xc8631aee9dcb5b201457dad3575a9e"
+export const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID
 export const DECIMALS = 1e8
 export const RPC_ENDPOINT = process.env.NODE_ENV === "development" ? "https://rpc.testnet.miden.io:443" : (devnet ? "https://rpc.devnet.miden.io:443" : "https://rpc.testnet.miden.io:443");
 export const FAUCET_API_ENDPOINT = (address: string, amount: string) => `${process.env.NODE_ENV === "development" ? "http://localhost:9090" : BASE_API_URL}/mint/${address}/${amount}`;

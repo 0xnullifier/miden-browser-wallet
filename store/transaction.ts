@@ -24,7 +24,10 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
             const fungibleAssets = note?.assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
             return acc + (fungibleAssets?.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0)) || BigInt(0));
         }, BigInt(0));
-        console.log(amount)
+        if (amount === BigInt(0)) {
+            return null;
+        }
+
         const statusObject = tr.transactionStatus()
         return {
             id: tr.id().toHex(),
@@ -42,6 +45,10 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
             const fungibleAssets = note.details().assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
             return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0));
         }, BigInt(0));
+
+        if (amount === BigInt(0)) {
+            return null;
+        }
 
         const statusObject = tr.transactionStatus()
         const transactionType = inputNote[0].metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
@@ -63,7 +70,7 @@ export const createTransactionStore = () => create<TransactionStore, [["zustand/
         loadTransactions: async (record) => {
             set({ loading: true });
             try {
-                const transactions: UITransaction[] = record.map((record) => transactionRecordToUITransaction(record))
+                const transactions: UITransaction[] = record.map((record) => transactionRecordToUITransaction(record)).filter((tx): tx is UITransaction => tx !== null);
                 transactions.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
                 set({ transactions });
             } catch (error) {
