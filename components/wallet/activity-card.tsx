@@ -8,7 +8,7 @@ import { ArrowUpRight, ArrowDownLeft, Droplets, Shield, Clock, XCircle } from "l
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BECH32_PREFIX, DECIMALS, EXPLORER_URL, FAUCET_ID, RPC_ENDPOINT } from "@/lib/constants"
+import { DECIMALS, RPC_ENDPOINT } from "@/lib/constants"
 import { UITransaction } from "@/store/transaction"
 
 
@@ -96,13 +96,11 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
 
 export function ActivityCardList() {
     const transactions = useTransactionStore((state) => state.transactions)
-    console.log("Transactions in ActivityCardList:", transactions)
     const loadTransactions = useTransactionStore((state) => state.loadTransactions)
     const clientRef = useRef<any | null>(null);
     const account = useMidenSdkStore((state) => state.account)
-    const balance = useBalanceStore((state) => state.balance)
+    const blockNum = useMidenSdkStore((state) => state.blockNum)
     const [clientInitialized, setClientInitialized] = useState(false)
-    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         const initClient = async () => {
@@ -111,7 +109,6 @@ export function ActivityCardList() {
             clientInstance.terminate()
             clientRef.current = clientInstance;
             setClientInitialized(true);
-            console.log("Miden SDK client initialized:", clientInstance);
         };
         initClient();
 
@@ -132,12 +129,11 @@ export function ActivityCardList() {
         }
 
         const fetchTransactions = async () => {
-            console.log("Fetching transactions for account:", account);
-            setLoading(true)
             try {
                 const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient, NetworkId } = await import("@demox-labs/miden-sdk");
                 if (clientRef.current instanceof WebClient) {
-                    const transactionRecords = (await clientRef.current.getTransactions(TransactionFilter.all())).filter((tx) => tx.accountId().toBech32(NetworkId.Testnet, 0) === account);
+                    const allTransactions = (await clientRef.current.getTransactions(TransactionFilter.all()))
+                    const transactionRecords = allTransactions.filter((tx) => tx.accountId().toBech32(NetworkId.Testnet, 0) === account)
                     const inputNotes = (await clientRef.current.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
                     const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
                         if (tr.outputNotes().notes().length > 0) {
@@ -148,24 +144,16 @@ export function ActivityCardList() {
                         }
                     })
                     await loadTransactions(zippedInputeNotesAndTr)
+                } else {
+                    console.error("wrong client")
                 }
             } catch (error) {
                 console.error("Error loading transactions:", error)
-            } finally {
-                setLoading(false)
             }
         }
 
         fetchTransactions()
-    }, [clientInitialized, account, balance])
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center py-8">
-                <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-        )
-    }
+    }, [clientInitialized, account, blockNum])
 
     if (transactions.length === 0) {
         return (

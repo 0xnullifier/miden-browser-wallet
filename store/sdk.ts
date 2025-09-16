@@ -57,7 +57,6 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
             try {
                 const { WebClient } = await import("@demox-labs/miden-sdk");
                 const client = await WebClient.createClient(RPC_ENDPOINT);
-                console.log("Miden SDK client initialized:", client);
                 set((state) => {
                     state.error = null;
                 });
@@ -77,7 +76,6 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
                 }
 
                 console.error("Miden SDK initialization error:", error);
-                console.log(error.toString())
                 set((state) => {
                     state.error = error instanceof Error ? error.message : "Failed to initialize Miden SDK client";
                     state.isLoading = false;
@@ -133,29 +131,28 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
                     });
                 }
             } else {
-                console.log("No saved account found, creating new account...");
                 const newAccount = await client.newWallet(AccountStorageMode.private(), true);
                 const newAccountId = newAccount.id().toBech32(NetworkId.Testnet, 0);
                 setAccount(newAccountId);
                 localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccountId)
-                console.log("New account created and saved:", newAccount);
-                await axios.get(ADD_ADDRESS_API(newAccountId));
+
+                try {
+                    await axios.get(ADD_ADDRESS_API(newAccountId));
+                } catch {
+                    console.error("Cannot call address API", error)
+                }
             }
         },
 
         createNewAccount: async () => {
-            console.log("Creating new account in Miden SDK");
             const { WebClient, AccountStorageMode, NetworkId } = await import("@demox-labs/miden-sdk");
             const client = await WebClient.createClient(RPC_ENDPOINT);
             const { setAccount } = get();
-            console.log("Current client:", client);
             if (!client) {
                 throw new Error("Miden SDK client or account storage not initialized");
             }
             const newAccount = await client.newWallet(AccountStorageMode.private(), true)
-            console.log("New account generated:", newAccount);
             setAccount(newAccount.id().toBech32(NetworkId.Testnet, 0));
-            console.log("New account created:", newAccount);
             localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccount.serialize().toString())
             return newAccount;
         }

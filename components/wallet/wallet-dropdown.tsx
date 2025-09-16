@@ -22,16 +22,10 @@ import { LoadingSpinner } from "../ui/loading-spinner"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
-import { DialogClose } from "@radix-ui/react-dialog"
 import { Textarea } from "../ui/textarea"
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
-import { Input } from "../ui/input"
 
 export function WalletDropdown() {
     const account = useMidenSdkStore((state) => state.account)
@@ -47,13 +41,12 @@ export function WalletDropdown() {
             console.error("No account found to export private key")
             return
         }
-        const { WebClient, AccountId } = await import("@demox-labs/miden-sdk");
+        const { WebClient, Address } = await import("@demox-labs/miden-sdk");
         const client = await WebClient.createClient(RPC_ENDPOINT);
 
         try {
             // returns a array of bytes
-            const exportAccount = await client.exportAccountFile(AccountId.fromBech32(account));
-            console.log({ exportAccount });
+            const exportAccount = await client.exportAccountFile(Address.fromBech32(account).accountId());
             const base64String = btoa(String.fromCharCode(...exportAccount));
             const fullString = `${base64String}:${account}`;
             await navigator.clipboard.writeText(fullString);
@@ -83,7 +76,7 @@ export function WalletDropdown() {
     }
 
     const importAccount = async () => {
-        const { WebClient, AccountId } = await import("@demox-labs/miden-sdk");
+        const { WebClient, Address } = await import("@demox-labs/miden-sdk");
         const client = await WebClient.createClient(RPC_ENDPOINT);
         setImportLoading(true)
         if (!importStr || importStr.length === 0) {
@@ -97,11 +90,9 @@ export function WalletDropdown() {
             indexedDB.deleteDatabase("MidenClientDB")
             const b64AccountString = importStr.split(":")[0];
             const newAccountId = importStr.split(":")[1];
-            console.log({ b64AccountString, newAccountId })
             const byteArray = Uint8Array.from(atob(b64AccountString), c => c.charCodeAt(0));
-            console.log({ byteArray })
             await client.importAccountFile(byteArray);
-            const account = await client.getAccount(AccountId.fromBech32(newAccountId));
+            const account = await client.getAccount(Address.fromBech32(newAccountId).accountId());
             if (!account) {
                 throw new Error("Imported account not found after import");
             }

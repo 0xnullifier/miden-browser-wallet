@@ -23,7 +23,8 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
 
     loadBalance: async (client, _accountId) => {
         const { AccountId, Address } = await import("@demox-labs/miden-sdk");
-        const accountId = AccountId.fromBech32(_accountId);
+        const address = Address.fromBech32(_accountId);
+        const accountId = address.accountId()
         const { consumingLoading } = get()
         set({ loading: true });
         const accountRecord = await client.getAccount(accountId)
@@ -36,7 +37,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
 
         const consumableNotes = await client.getConsumableNotes();
         if (consumableNotes.length === 0) {
-            console.log("No pending balance to consume");
+            console.info("No pending balance to consume");
             return;
         } else if (!consumingLoading) {
             set({ consumingLoading: true });
@@ -70,7 +71,6 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
         try {
             const amountInBaseDenom = BigInt(Math.trunc(Number(amount) * DECIMALS))
             const txId = await axios.get(FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()))
-            console.log("Faucet request successful:", txId.data);
             sucessTxToast("Faucet used successfully", txId.data.replaceAll(' ', ''));
         } catch (error) {
             console.error("Faucet request failed:", error);

@@ -30,7 +30,6 @@ interface OneToManyProps {
 
 export function OneToMany({ isOneToMany, setIsOneToMany, amount, receipient }: OneToManyProps) {
     const [rows, setRows] = useState<DistributionRow[]>([])
-    console.log("Initial rows:", rows)
     const [loading, setLoading] = useState(false)
     const [amountForEqualDist, setAmountForEqualDist] = useState("")
     const [bulkInput, setBulkInput] = useState("")
@@ -83,13 +82,11 @@ export function OneToMany({ isOneToMany, setIsOneToMany, amount, receipient }: O
         setLoading(true)
         try {
             const txResult = await sendToMany(account, rows.map(row => ({ to: row.address, amount: BigInt(Math.trunc(parseFloat(row.amount))) })))
-            console.log("Transaction Result:", txResult)
-            toast.success("Payment sent successfully!", { position: "top-right" })
+            sucessTxToast("One to many payment sent successfully 🚀", txResult.executedTransaction().id().toHex())
         } catch (error) {
             console.error("Error sending payment:", error)
         } finally {
             setLoading(false)
-            setIsOneToMany(false)
         }
     }
 
@@ -318,6 +315,7 @@ import { Alert, AlertDescription } from "../ui/alert"
 import { sendToMany } from "@/lib/actions"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { toast } from "sonner"
+import { sucessTxToast } from "../success-tsx-toast"
 
 export function DropdownMenuForMode({ mode, setMode }: { mode: "table" | "bulk", setMode: (mode: "table" | "bulk") => void }) {
     return (

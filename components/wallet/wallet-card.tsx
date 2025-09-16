@@ -18,7 +18,6 @@ interface WalletCardProps {
 export function Balance() {
     const balance = useBalanceStore((state) => state.balance)
     const balanceInToken = Number(balance) / DECIMALS
-    console.log(balanceInToken)
     return <div className="text-4xl sm:text-5xl font-light mb-4 leading-tight py-3 flex items-end gap-2">{Number(balanceInToken).toFixed(2)}<p className="text-2xl">MDN</p></div>
 }
 
