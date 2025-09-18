@@ -53,7 +53,6 @@ export function Dashboard() {
     const fetchLatestTransactions = async () => {
         const res = await axios.get(LATEST_TRANSACTIONS_API)
         if (res.status === 200) {
-            console.log(res.data)
             const transactionsData = res.data.map((tx) => ({
                 tx_id: tx.tx_id,
                 tx_kind: tx.tx_kind,

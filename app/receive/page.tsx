@@ -1,6 +1,6 @@
 "use client";
 
-import { importPrivateNote } from "@/lib/actions";
+import { importNote } from "@/lib/actions";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -10,22 +10,26 @@ import { toast } from "sonner";
 export default function ReceivePage() {
     const searchParams = useSearchParams()
     const [noteBytes, setNoteBytes] = useState<number[] | null>(null);
+    const [receiver, setReceiver] = useState("")
     const [loading, setLoading] = useState<boolean>(true);
     const [success, setSuccess] = useState<boolean>(false);
-    const note = searchParams.get('note');
+    const recieveStr = searchParams.get('note');
 
     useEffect(() => {
-        if (!note) return;
+        if (!recieveStr) return;
+        console.log(recieveStr)
+        const [note, _receiver] = recieveStr.split(":")
+        setReceiver(_receiver)
         const noteBytes = atob(note.replace(/_/g, '/').replace(/-/g, '+').padEnd(note.length + (4 - note.length % 4) % 4, '='))
             .split('').map(c => c.charCodeAt(0));
         setNoteBytes(noteBytes);
-    }, [note]);
+    }, [recieveStr]);
 
     useEffect(() => {
         if (!noteBytes) return;
         (async () => {
             try {
-                await importPrivateNote(noteBytes);
+                await importNote(noteBytes, receiver);
                 setSuccess(true);
             } catch (error) {
                 console.error("Error importing note:", error);

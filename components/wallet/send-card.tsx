@@ -1,6 +1,6 @@
 "use client"
 
-import { Camera, Loader2, Copy, Check, Info } from "lucide-react"
+import { Camera, Loader2, Copy, Check, Info, Download } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
 import { Input } from "../ui/input"
@@ -35,6 +35,8 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const [loading, setLoading] = useState(false)
     const [base64NoteStr, setBase64NoteStr] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
+    const [note, setNote] = useState<any | null>(null)
+
     const account = useMidenSdkStore((state) => state.account)
     const balance = useBalanceStore((state) => state.balance)
 
@@ -46,8 +48,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const [retryIntervalId, setRetryIntervalId] = useState<NodeJS.Timeout | null>(null)
     const [doItAsync, setDoItAsync] = useState(false)
 
-    // RECEIVER ONLINE STATE EVEN FOR PUBLIC NOTE SENDING
-    const [receiverOnline, setReceiverOnline] = useState(false)
+
 
     const ws = useWebRtcStore((state) => state.webSocket);
     const dc = useWebRtcStore((state) => state.dataChannel);
@@ -97,7 +98,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
         try {
             const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
-            console.log(tx.executedTransaction().id().toHex())
+            setNote(note)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
             setNoteBytes(Array.from(note.serialize()))
             setTx(tx)
@@ -153,7 +154,6 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             setBase64NoteStr(base64Note)
             setReceiverOfflineDialog(true)
             setLoading(false)
-            setRecipient("")
             setAmount("")
         }
 
@@ -162,7 +162,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             setNoteBytes(null)
             setTx(null)
             setBase64NoteStr(null)
-            toast.success("Private note sent successfully", { position: "top-right" })
+            toast.success("Note sent successfully", { position: "top-right" })
             setAmount("")
             setRecipient("")
             dc.close()
@@ -237,7 +237,6 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                 setBase64NoteStr(base64Note)
                 setReceiverOfflineDialog(true)
                 setLoading(false)
-                setRecipient("")
                 setAmount("")
             }
         }
@@ -288,8 +287,88 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             console.error("Failed to copy to clipboard:", error)
         }
     }
+    const [downloadLoading, setDownloadLoading] = useState(false)
+    const downloadNote = async () => {
+        setDownloadLoading(true)
+        const { WebClient, Note } = await import("@demox-labs/miden-sdk")
+        if (!note) return
+        const client = await WebClient.createClient(RPC_ENDPOINT)
+        try {
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            const noteBytes = await client.exportNoteFile(note.id().toString(), "Full")
 
-    const receiveLink = base64NoteStr ? `${BASE_URL}/receive?note=${base64NoteStr}` : ""
+            const uint8Array = new Uint8Array(noteBytes)
+
+            const blob = new Blob([uint8Array], { type: 'application/octet-stream' })
+
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = `miden-note-${Date.now()}.miden`
+
+            // Trigger download
+            document.body.appendChild(link)
+            link.click()
+
+            // Cleanup
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+
+            toast.success("Note downloaded successfully")
+        } catch (error) {
+            console.error("Failed to download note:", error)
+            toast.error("Failed to download note")
+        } finally {
+            setDownloadLoading(false)
+            client.terminate()
+        }
+    }
+
+    const onPrivateNoteOpenChange = (open: boolean) => {
+        setReceiverOfflineDialog(open)
+
+        if (!open) {
+            // Reset WebRTC and transaction states
+            setStage("idle")
+            setDoItAsync(false)
+
+            // Reset form fields
+            setRecipient("")
+            setAmount("")
+
+            // Reset transaction data
+            setNoteBytes(null)
+            setTx(null)
+            setBase64NoteStr(null)
+
+            // Reset UI states
+            setLoading(false)
+            setCopied(false)
+
+            // Reset retry mechanism
+            setRetryNumber(0)
+            setRetryingDialog(false)
+            if (retryIntervalId) {
+                clearInterval(retryIntervalId)
+                setRetryIntervalId(null)
+            }
+
+
+            // Clean up client reference
+            if (clientRef.current) {
+                clientRef.current.terminate()
+                clientRef.current = null
+            }
+
+            // Reset data channel
+            if (dc && dc.readyState === "open") {
+                dc.close()
+                setDataChannel(null)
+            }
+        }
+    }
+
+    const receiveLink = base64NoteStr ? `${BASE_URL}/receive?note=${base64NoteStr}:${receiverRef.current}` : ""
 
 
     return (
@@ -402,7 +481,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                     <DialogHeader>
                         <DialogTitle>Connecting to Receiver</DialogTitle>
                         <DialogDescription>
-                            Attempting to establish connection for private note transfer...
+                            Trying to connect for private note transfer. If the recipient is not using the browser wallet, click "Continue Offline" to download and share the note manually.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -418,7 +497,6 @@ export function SendCard({ onClose }: { onClose: () => void }) {
                     </div>
                     <DialogFooter>
                         <Button
-                            variant="outline"
                             onClick={() => {
                                 setDoItAsync(true)
                             }}
@@ -430,19 +508,21 @@ export function SendCard({ onClose }: { onClose: () => void }) {
             </Dialog>
 
             {/* Private Note Dialog */}
-            <Dialog open={receiverOfflineDialogOpen} onOpenChange={setReceiverOfflineDialog}>
+            <Dialog open={receiverOfflineDialogOpen} onOpenChange={onPrivateNoteOpenChange}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Private Note Generated</DialogTitle>
 
                     </DialogHeader>
                     <div className="space-y-4 ">
-                        <div className="py-2 text-sm">The Receiver is offline. Please share the link below with them to complete the private payment.</div>
+                        <div className="py-2 text-sm">
+                            Share the link if the receiver is using the browser wallet, Download the note otherwise and send them manually.
+                        </div>
                         <div className="flex items-center gap-2">
                             <Input
                                 readOnly
                                 value={receiveLink}
-                                className="flex-1"
+                                className="flex-1 text-primary-foreground"
                             />
                             <Button
                                 variant="outline"
@@ -455,7 +535,14 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
                     </div>
                     <DialogFooter>
-                        <Button variant="secondary" onClick={() => setReceiverOfflineDialog(false)}>
+                        <Button
+                            onClick={downloadNote}
+                            disabled={!noteBytes || downloadLoading}
+                            className="flex items-center gap-2"
+                        >
+                            {downloadLoading ? <><Loader2 className="animate-spin" /> Downloading </> : <><Download className="h-4 w-4" /> Download Note</>}
+                        </Button>
+                        <Button variant="secondary" onClick={() => onPrivateNoteOpenChange(false)}>
                             Close
                         </Button>
                     </DialogFooter>

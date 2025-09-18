@@ -19,11 +19,7 @@ export function Faucet({ onClose }: { onClose: () => void }) {
     const faucet = useBalanceStore((state) => state.faucet)
     const faucetLoading = useBalanceStore((state) => state.faucetLoading)
     const account = useMidenSdkStore(store => store.account)
-    useEffect(() => {
-        console.log("Faucet component mounted, account:", account)
-    }, [])
-    console.log("Faucet account:", account)
-    console.log(amount)
+
     const onMint = async () => {
         if (!account) {
             console.error("No account found for faucet request");

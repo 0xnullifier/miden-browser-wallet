@@ -6,7 +6,6 @@ export const sucessTxToast = (
     message: string,
     txId: string
 ) => {
-    console.log("Transaction successful:", txId)
     toast.success(message, {
         position: "top-right",
         action: (

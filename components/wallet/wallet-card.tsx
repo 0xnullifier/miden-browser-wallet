@@ -105,7 +105,7 @@ function ActionButton({ icon: Icon, label, setToShow, type }: { icon: React.Comp
         <div className="flex flex-col items-center gap-2">
             <Button
                 variant="secondary"
-                className="rounded-full bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/10 p-0 h-12 w-12 sm:h-14 sm:w-14 flex items-center justify-center"
+                className="rounded-full bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 p-0 h-12 w-12 sm:h-14 sm:w-14 flex items-center justify-center"
                 onClick={() => setToShow(type)}
             >
                 <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white dark:text-primary-foreground" />

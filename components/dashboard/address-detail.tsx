@@ -62,7 +62,6 @@ export function AddressComponent() {
     useEffect(() => {
         (async () => {
             try {
-                console.log("Fetching transactions for id:", id);
                 await fetchTransactionCount();
                 await fetchAddressData(currentPage);
             } catch (error) {

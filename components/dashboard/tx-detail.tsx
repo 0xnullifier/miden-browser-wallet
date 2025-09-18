@@ -23,7 +23,6 @@ export function TransactionDetails() {
         setNotFound(false);
         try {
             const response = await axios.get(GET_TRANSACTION(id));
-            console.log("Transaction response:", response.data);
             if (response.status === 200 && response.data) {
                 setTransaction({
                     tx_id: response.data.tx_id,
