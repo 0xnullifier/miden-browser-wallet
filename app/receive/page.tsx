@@ -17,7 +17,6 @@ export default function ReceivePage() {
 
     useEffect(() => {
         if (!recieveStr) return;
-        console.log(recieveStr)
         const [note, _receiver] = recieveStr.split(":")
         setReceiver(_receiver)
         const noteBytes = atob(note.replace(/_/g, '/').replace(/-/g, '+').padEnd(note.length + (4 - note.length % 4) % 4, '='))

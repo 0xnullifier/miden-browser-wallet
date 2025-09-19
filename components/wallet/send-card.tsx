@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { send } from "@/lib/actions"
 import { sucessTxToast } from "@/components/success-tsx-toast"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
-import { BASE_URL, RPC_ENDPOINT, } from "@/lib/constants"
+import { BASE_URL, DECIMALS, RPC_ENDPOINT, } from "@/lib/constants"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useWebRtcStore } from "@/providers/webrtc-provider"
@@ -27,7 +27,7 @@ import {
 
 
 // Send Card Component
-export function SendCard({ onClose }: { onClose: () => void }) {
+export function SendCard({ selectedAddress }: { selectedAddress: string }) {
     const [amount, setAmount] = useState("")
     const [recipient, setRecipient] = useState("")
     const [isOneToMany, setIsOneToMany] = useState(false)
@@ -38,7 +38,10 @@ export function SendCard({ onClose }: { onClose: () => void }) {
     const [note, setNote] = useState<any | null>(null)
 
     const account = useMidenSdkStore((state) => state.account)
-    const balance = useBalanceStore((state) => state.balance)
+    const balances = useBalanceStore((state) => state.balances)
+    const faucetInfo = useBalanceStore((state) => state.faucets);
+    const balance = balances[selectedAddress]
+    const decimals = faucetInfo.find((faucet) => faucet.address === selectedAddress)?.decimals || DECIMALS
 
     const [receiverOfflineDialogOpen, setReceiverOfflineDialog] = useState(false)
     const clientRef = useRef<any | null>(null);
@@ -97,7 +100,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
         }
 
         try {
-            const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
+            const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, selectedAddress, decimals, delegate)
             setNote(note)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
             setNoteBytes(Array.from(note.serialize()))
@@ -118,7 +121,7 @@ export function SendCard({ onClose }: { onClose: () => void }) {
 
     const processOfflineTransaction = async () => {
         try {
-            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, delegate)
+            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, selectedAddress, decimals, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
         }
         catch (error) {

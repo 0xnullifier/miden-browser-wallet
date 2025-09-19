@@ -1,15 +1,15 @@
 import { toast } from "sonner";
-import { FAUCET_ID as _, DECIMALS, RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
+import { RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
 import { sucessTxToast } from "@/components/success-tsx-toast";
 
-export async function send(client: any, from: string, to: string, amount: number, isPrivate: boolean, delegate?: boolean) {
+export async function send(client: any, from: string, to: string, amount: number, isPrivate: boolean, faucetId: string, decimals: number, delegate?: boolean) {
     const { WebClient, AccountId, Address, NoteType, TransactionProver, Note, NoteAssets, FungibleAsset, Felt, TransactionRequestBuilder, OutputNotesArray, OutputNote } = await import("@demox-labs/miden-sdk");
     if (client instanceof WebClient) {
         const noteType = isPrivate ? NoteType.Private : NoteType.Public;
-        const FAUCET_ID = AccountId.fromHex(_);
+        const FAUCET_ID = AccountId.fromHex(faucetId);
         const accountId = Address.fromBech32(from).accountId()
         const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : Address.fromBech32(to).accountId();
-        const amountInBaseDenom = BigInt(Math.trunc(amount * DECIMALS))
+        const amountInBaseDenom = BigInt(amount) * BigInt(10 ** decimals);
         const noteAssets = new NoteAssets([
             new FungibleAsset(FAUCET_ID, amountInBaseDenom)
         ])
@@ -60,14 +60,14 @@ export async function importNote(noteBytes: any, receiver: string) {
 
 }
 
-export async function sendToMany(sender: string, receipients: { to: string, amount: bigint }[], delegate: boolean = true) {
+export async function sendToMany(sender: string, receipients: { to: string, amount: bigint }[], _faucetId: string, decimals: number, delegate: boolean = true) {
     const { WebClient, Note, AccountId, Address, NoteAssets, FungibleAsset, NoteType, Felt, OutputNote, OutputNotesArray, TransactionRequestBuilder, TransactionProver } = await import("@demox-labs/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
-    const faucetId = AccountId.fromHex(_);
+    const faucetId = AccountId.fromHex(_faucetId);
     try {
         const senderAccountId = Address.fromBech32(sender).accountId();
         const notes = new OutputNotesArray(receipients.map(({ to, amount }) => {
-            const amountInBaseDenom = amount * BigInt(DECIMALS);
+            const amountInBaseDenom = amount * BigInt(10 ** decimals);
             const toAccountId = to.startsWith("0x") ? AccountId.fromHex(to) : Address.fromBech32(to).accountId();
             const noteAssets = new NoteAssets([
                 new FungibleAsset(faucetId, amountInBaseDenom)

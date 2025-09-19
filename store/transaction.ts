@@ -4,10 +4,11 @@ import { FAUCET_ID } from "@/lib/constants";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 export interface UITransaction {
-    id: string,
+    id: string;
     type: "Incoming" | "Outgoing" | "Faucet";
     amount: bigint;
     timestamp: string;
+    address: string;
     status: "isCommited" | "isPending" | "isFailed";
 }
 
@@ -21,18 +22,20 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
     if (inputNote === undefined || inputNote.length === 0) {
         const outputNotes = tr.outputNotes().notes().map((note) => note.intoFull())
         const amount = outputNotes.reduce((acc: bigint, note) => {
-            const fungibleAssets = note?.assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
+            const fungibleAssets = note?.assets().fungibleAssets();
             return acc + (fungibleAssets?.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0)) || BigInt(0));
         }, BigInt(0));
         if (amount === BigInt(0)) {
             return null;
         }
-
+        // we know that there will be only one output note for outgoing transaction
+        const faucetId = outputNotes[0]?.assets().fungibleAssets()[0]?.faucetId().toString();
         const statusObject = tr.transactionStatus()
         return {
             id: tr.id().toHex(),
             type: "Outgoing",
             amount,
+            address: faucetId,
             timestamp: tr.blockNum().toString(),
             status: (statusObject.isCommitted()) ? "isCommited" : (statusObject.isPending()) ? "isPending" : "isFailed"
         }
@@ -42,18 +45,20 @@ function transactionRecordToUITransaction({ tr, inputNote }: { tr: any, inputNot
         }
 
         const amount = inputNote.reduce((acc: bigint, note) => {
-            const fungibleAssets = note.details().assets().fungibleAssets().filter((asset) => asset.faucetId().toString() === FAUCET_ID);
+            const fungibleAssets = note.details().assets().fungibleAssets();
             return acc + fungibleAssets.reduce((sum: bigint, asset) => sum + asset.amount(), BigInt(0));
         }, BigInt(0));
 
         if (amount === BigInt(0)) {
             return null;
         }
-
+        // we know that there will be only one input note for incoming transaction
         const statusObject = tr.transactionStatus()
         const transactionType = inputNote[0].metadata()?.sender().toString() === FAUCET_ID.toString() ? "Faucet" : "Incoming";
+        const faucetId = inputNote[0].details().assets().fungibleAssets()[0]?.faucetId().toString();
         return {
             id: tr.id().toHex(),
+            address: faucetId,
             type: transactionType,
             amount: amount,
             timestamp: tr.blockNum().toString(),

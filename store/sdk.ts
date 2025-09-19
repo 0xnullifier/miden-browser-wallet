@@ -1,6 +1,7 @@
-import { ADD_ADDRESS_API, BECH32_PREFIX, ERROR_THROWN_ON_VERSION_MISMATCH, MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, RPC_ENDPOINT } from "@/lib/constants";
+import { ADD_ADDRESS_API, BECH32_PREFIX, ERROR_THROWN_ON_VERSION_MISMATCH, FAUCET_ID, MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, RPC_ENDPOINT } from "@/lib/constants";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
@@ -34,6 +35,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
         config: { endpoint: RPC_ENDPOINT },
         blockNum: 0,
         account: "",
+
         setAccount: (account: string) => {
             set((state) => {
                 state.account = account;
@@ -106,7 +108,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
         initializeAccount: async (client: any) => {
             const { setAccount, error } = get();
 
-            const { AccountStorageMode, NetworkId, WebClient, Address } = await import("@demox-labs/miden-sdk");
+            const { AccountStorageMode, NetworkId, WebClient, Address, AccountId, AccountInterface } = await import("@demox-labs/miden-sdk");
             if (!(client instanceof WebClient)) {
                 throw new Error("Miden SDK client not initialized");
             }
@@ -114,6 +116,9 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
             if (accountID) {
                 try {
                     setAccount(accountID);
+                    const account = await client.getAccount(Address.fromBech32(accountID).accountId())
+                    const ids = account.vault().fungibleAssets().map((asset) => asset.faucetId());
+
                     return;
                 } catch (error) {
                     console.error("Failed to deserialize saved account:", error);
@@ -132,7 +137,7 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
                 }
             } else {
                 const newAccount = await client.newWallet(AccountStorageMode.private(), true);
-                const newAccountId = newAccount.id().toBech32(NetworkId.Testnet, 0);
+                const newAccountId = newAccount.id().toBech32(NetworkId.Testnet, AccountInterface.Unspecified);
                 setAccount(newAccountId);
                 localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, newAccountId)
 
@@ -158,5 +163,4 @@ export const createMidenSdkStore = () => create<MidenSdkStore>()(
         }
     }))
 );
-
 

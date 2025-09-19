@@ -13,14 +13,14 @@ import { UITransaction } from "@/store/transaction"
 
 
 
-function formatAmount(amount: bigint): string {
-    const value = Number(amount) / DECIMALS
+function formatAmount(amount: bigint, decimals: number, symbol: string): string {
+    const value = Number(amount) / 10 ** decimals;
     if (Math.abs(value) >= 1000000) {
         return `$${(value / 1000000).toFixed(0)}M`
     } else if (Math.abs(value) >= 1000) {
         return `$${(value / 1000).toFixed(0)}k`
     }
-    return `${value.toFixed(3)} MDN`
+    return `${value.toFixed(3)} ${symbol}`;
 }
 
 function getTransactionIcon(type: UITransaction["type"], status: UITransaction["status"]) {
@@ -72,9 +72,12 @@ function getAmountColor(type: UITransaction["type"], status: UITransaction["stat
 }
 
 function TransactionItem({ transaction }: { transaction: UITransaction }) {
-    const { type, amount, timestamp, status, id } = transaction
+    const { type, amount, timestamp, status, id, address } = transaction
+    const faucetInfo = useBalanceStore((state) => state.faucets);
+    const decimals = faucetInfo.find((faucet) => faucet.address === address)?.decimals || DECIMALS
+    const symbol = faucetInfo.find((faucet) => faucet.address === address)?.symbol || "MDN"
     const isNegative = type === "Outgoing"
-    const formattedAmount = formatAmount(amount)
+    const formattedAmount = formatAmount(amount, decimals, symbol);
     const displayAmount = isNegative ? `-${formattedAmount}` : `+${formattedAmount}`
     return (
         <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => { window.open(`/dashboard/tx/${id}`, "_blank") }}>
@@ -132,11 +135,7 @@ export function ActivityCardList() {
             try {
                 const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient, NetworkId } = await import("@demox-labs/miden-sdk");
                 if (clientRef.current instanceof WebClient) {
-                    console.log("here hello")
                     const allTransactions = (await clientRef.current.getTransactions(TransactionFilter.all()))
-                    console.log(allTransactions.forEach((tx) => {
-                        console.log(tx.accountId().toBech32(NetworkId.Testnet, 0))
-                    }))
                     const transactionRecords = allTransactions.filter((tx) => tx.accountId().toBech32(NetworkId.Testnet, 0) === account)
                     const inputNotes = (await clientRef.current.getInputNotes(new NoteFilter(NoteFilterTypes.All)))
                     const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
@@ -158,7 +157,6 @@ export function ActivityCardList() {
 
         fetchTransactions()
     }, [clientInitialized, account, blockNum])
-
     if (transactions.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center">

@@ -8,17 +8,20 @@ import { Activity, Droplets, MoreHorizontal, QrCode, Send } from "lucide-react"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { WalletDropdown } from "./wallet-dropdown"
-import { DECIMALS } from "@/lib/constants"
+import { TickerDropdown } from "./ticker-dropdown"
 export type toShowType = "send" | "activity" | "receive" | "faucet"
 
 interface WalletCardProps {
+    faucetAddress: string
+    setFaucetAddress: (address: string) => void
     setToShow: (view: toShowType) => void
 }
 
-export function Balance() {
-    const balance = useBalanceStore((state) => state.balance)
-    const balanceInToken = Number(balance) / DECIMALS
-    return <div className="text-4xl sm:text-5xl font-light mb-4 leading-tight py-3 flex items-end gap-2">{Number(balanceInToken).toFixed(2)}<p className="text-2xl">MDN</p></div>
+export function Balance({ address }: { address: string }) {
+    const balanceMap = useBalanceStore((state) => state.balances)
+    const faucetInfos = useBalanceStore((state) => state.faucets)
+    const symbol = faucetInfos.find((faucet) => faucet.address === address)?.symbol || "MDN"
+    return <div className="text-4xl sm:text-5xl font-light mb-4 leading-tight py-3 flex items-end gap-2">{Number(balanceMap[address]).toFixed(2)}<p className="text-2xl">{symbol}</p></div>
 }
 
 const ACTIONS = [
@@ -46,7 +49,8 @@ const ACTIONS = [
 
 
 
-export function WalletCard({ setToShow }: WalletCardProps) {
+
+export function WalletCard({ faucetAddress, setFaucetAddress, setToShow }: WalletCardProps) {
     const [copied, setCopied] = useState(false)
     const [address, setAddress] = useState<string>("")
     const account = useMidenSdkStore((state) => state.account)
@@ -76,13 +80,16 @@ export function WalletCard({ setToShow }: WalletCardProps) {
                         )}
                         {`${address.slice(0, 8)}...${address.slice(-4)}`}
                     </span>
-                    <WalletDropdown />
+                    <div className="flex items-center gap-3">
+                        <TickerDropdown selectedTicker={faucetAddress} setSelectedTicker={setFaucetAddress} />
+                        <WalletDropdown />
+                    </div>
                 </div>
             </CardHeader>
 
             <CardContent className="space-y-2 mt-[-15px]">
                 {/* Balance */}
-                <Balance />
+                <Balance address={faucetAddress} />
                 <div className="flex justify-between gap-2 pb-5">
                     {ACTIONS.map((action) => (
                         <ActionButton

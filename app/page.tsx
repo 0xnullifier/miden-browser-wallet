@@ -9,11 +9,13 @@ import { toShowType, WalletCard } from "@/components/wallet/wallet-card"
 import { Faucet } from "@/components/wallet/faucet-card"
 import { ReceiveCard } from "@/components/wallet/receve-card"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
+import { FAUCET_ID } from "@/lib/constants"
 
 
 export default function WalletInterface() {
     const isLoading = useMidenSdkStore((state) => state.isLoading)
     const [toShow, setToShow] = useState<toShowType>("activity")
+    const [faucetAddress, setFaucetAddress] = useState<string>(FAUCET_ID)
     if (isLoading) {
         return (
             <div className="min-h-screen bg-background flex justify-center px-4 md:px-6 md:py-6">
@@ -49,6 +51,8 @@ export default function WalletInterface() {
                     <div className={`flex justify-center`}>
                         <div className="w-full max-w-[400px] space-y-4">
                             <WalletCard
+                                faucetAddress={faucetAddress}
+                                setFaucetAddress={setFaucetAddress}
                                 setToShow={setToShow}
                             />
                             {toShow === "activity" && (
@@ -59,7 +63,7 @@ export default function WalletInterface() {
                     {toShow === "send" && (
                         <div className="flex justify-center w-full pt-3">
                             <div className="w-full max-w-[400px]">
-                                <SendCard onClose={() => setToShow("activity")} />
+                                <SendCard selectedAddress={faucetAddress} />
                             </div>
                         </div>
                     )}
