@@ -121,9 +121,6 @@ export function WalletDropdown() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="bottom">
-                        <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
-                            <Settings className="mr-2 h-4 w-4" /> Wallet Settings
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleExportAccount}>
                             <Download className="mr-2 h-4 w-4" /> Export Account
                         </DropdownMenuItem>
@@ -161,31 +158,6 @@ export function WalletDropdown() {
                     </DialogContent>
                 </Dialog>
 
-                <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Wallet Settings</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex flex-col gap-4">
-                            {/* <label htmlFor="prover-url" className="text-sm font-medium">
-                                Transaction Prover URL
-                            </label>
-                            <input
-                                id="prover-url"
-                                type="text"
-                                className="border px-3 py-2 text-sm"
-                                value={localStorage.getItem("transactionProverUrl") || ""}
-                                onChange={e => {
-                                    localStorage.setItem("transactionProverUrl", e.target.value)
-                                }}
-                                placeholder="Enter transaction prover URL"
-                            />
-                            <span className="text-xs text-muted-foreground">
-                                This URL will be used for transaction proving.
-                            </span> */}
-                        </div>
-                    </DialogContent>
-                </Dialog>
             </>
         )
     )
