@@ -17,9 +17,8 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toSvg } from "jdenticon"
 
-export function AddressComponent() {
+export default function AddressComponent() {
     const { id } = useParams<{ id: string }>();
     const [paginatedTransactions, setPaginatedTransactions] = useState<Omit<BackendTransaction, "note_id">[]>([])
     const [currentPage, setCurrentPage] = useState(1);
@@ -28,7 +27,7 @@ export function AddressComponent() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false)
     const [empty, setEmpty] = useState(false);
-    const svg = toSvg(id, 60)
+    const [svg, setSvg] = useState<string>("");
     const fetchAddressData = async (pageNum: number) => {
         const res = await axios.get(GET_ADDRESS_TRANSACTIONS(id, pageNum))
         const data = res.data;
@@ -60,6 +59,15 @@ export function AddressComponent() {
     }
 
     useEffect(() => {
+        // Generate SVG client-side only
+        const generateSvg = async () => {
+            if (typeof document !== 'undefined') {
+                const { toSvg } = await import('jdenticon');
+                setSvg(toSvg(id, 60));
+            }
+        };
+        generateSvg();
+
         (async () => {
             try {
                 await fetchTransactionCount();
@@ -290,7 +298,11 @@ export function AddressComponent() {
                         ) : (
                             paginatedTransactions.map((transaction, index) => (
                                 <TableRow key={index} className="border-border">
-                                    <TableCell className="text-center font-mono text-sm text-primary hover:underline hover:underline-offset-2 cursor-pointer py-2" onClick={() => window.open(`/dashboard/tx/${transaction.tx_id}`, "_open")}>{truncateAddress(transaction.tx_id)}</TableCell>
+                                    <TableCell className="text-center font-mono text-sm text-primary hover:underline hover:underline-offset-2 cursor-pointer py-2" onClick={() => {
+                                        if (typeof document !== "undefined") {
+                                            window.open(`/dashboard/tx/${transaction.tx_id}`, "_open")
+                                        }
+                                    }}>{truncateAddress(transaction.tx_id)}</TableCell>
                                     <TableCell className="text-center text-foreground py-2">{renderTransactionTypeBadge(transaction.tx_kind)}</TableCell>
                                     <TableCell className="text-center text-sm text-foreground py-2">{transaction.block_num}</TableCell>
                                     <TableCell className="text-center text-sm text-foreground py-2">{formatTimestamp(transaction.timestamp)}</TableCell>

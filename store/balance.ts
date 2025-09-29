@@ -83,7 +83,13 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
                 const consumeTxRequest = client.newConsumeTransactionRequest(noteIds)
                 const txResult = await client.newTransaction(accountId, consumeTxRequest)
                 const txId = txResult.executedTransaction().id().toHex()
-                await client.submitTransaction(txResult, prover)
+                try {
+                    await client.submitTransaction(txResult, prover);
+                } catch (e) {
+                    console.log(e)
+                    // maybe a prover error, we retry once more
+                    await client.submitTransaction(txResult);
+                }
                 sucessTxToast(`Consumed ${noteIds.length} successfully`, txId)
             } catch (error) {
                 console.error("Error consuming notes:", error);

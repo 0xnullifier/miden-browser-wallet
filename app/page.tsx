@@ -14,6 +14,7 @@ import { useLoadingTimeout } from "@/hooks/use-loading-timeout"
 import { nukeWalletDatabase } from "@/lib/utils"
 import { FAUCET_ID } from "@/lib/constants"
 import { toast } from "sonner"
+import { motion } from "motion/react"
 
 
 export default function WalletInterface() {
@@ -62,34 +63,92 @@ export default function WalletInterface() {
     if (isLoading) {
         return (
             <>
-                <div className="h-[600px] bg-background flex justify-center px-4 md:px-6 md:py-6">
-                    <Card className="w-full max-w-md bg-card border-border">
-                        <CardContent className="p-6 space-y-6">
-                            <div className="text-center space-y-4">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-medium text-foreground">
-                                        Loading Wallet...
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Checking for existing wallet
-                                    </p>
-                                    {elapsedTime > 5000 && (
-                                        <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                                            Loading for {Math.floor(elapsedTime / 1000)} seconds...
+                <motion.div
+                    className="h-[600px] bg-background flex justify-center px-4 md:px-6 md:py-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="w-full max-w-md"
+                    >
+                        <Card className="bg-card border-border">
+                            <CardContent className="p-6 space-y-6">
+                                <motion.div
+                                    className="text-center space-y-4"
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.2 }}
+                                >
+                                    <motion.div
+                                        className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    ></motion.div>
+                                    <motion.div
+                                        className="space-y-2"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ duration: 0.3, delay: 0.4 }}
+                                    >
+                                        <h3 className="text-lg font-medium text-foreground">
+                                            Loading Wallet...
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Checking for existing wallet
                                         </p>
-                                    )}
-                                </div>
-                            </div>
+                                        {elapsedTime > 5000 && (
+                                            <motion.p
+                                                className="text-xs text-yellow-600 dark:text-yellow-400"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                Loading for {Math.floor(elapsedTime / 1000)} seconds...
+                                            </motion.p>
+                                        )}
+                                    </motion.div>
+                                </motion.div>
 
-                            <div className="space-y-3">
-                                <Skeleton className="h-4 w-3/4 mx-auto" />
-                                <Skeleton className="h-4 w-1/2 mx-auto" />
-                                <Skeleton className="h-4 w-2/3 mx-auto" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                                <motion.div
+                                    className="space-y-3"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.6 }}
+                                >
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "75%" }}
+                                        transition={{ duration: 0.8, delay: 0.7 }}
+                                        className="mx-auto"
+                                    >
+                                        <Skeleton className="h-4" />
+                                    </motion.div>
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "50%" }}
+                                        transition={{ duration: 0.8, delay: 0.9 }}
+                                        className="mx-auto"
+                                    >
+                                        <Skeleton className="h-4" />
+                                    </motion.div>
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "66%" }}
+                                        transition={{ duration: 0.8, delay: 1.1 }}
+                                        className="mx-auto"
+                                    >
+                                        <Skeleton className="h-4" />
+                                    </motion.div>
+                                </motion.div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                </motion.div>
 
                 <LoadingTimeoutDialog
                     isOpen={showTimeoutDialog}
@@ -103,44 +162,111 @@ export default function WalletInterface() {
     }
 
     return (
-        <div className="bg-background px-4 py-4 md:px-6 md:py-6" >
-            <div className="max-w-[1200px] mx-auto">
-                <div className="h-full relative gap-4">
-                    <div className={`flex justify-center`}>
-                        <div className="w-full max-w-[400px] space-y-4">
-                            <WalletCard
-                                faucetAddress={faucetAddress}
-                                setFaucetAddress={setFaucetAddress}
-                                setToShow={setToShow}
-                            />
-                            {toShow === "activity" && (
-                                <ActivityCardList />
-                            )}
-                        </div>
-                    </div>
-                    {toShow === "send" && (
-                        <div className="flex justify-center w-full pt-3">
-                            <div className="w-full max-w-[400px]">
-                                <SendCard selectedAddress={faucetAddress} />
-                            </div>
-                        </div>
+        <motion.div
+            className="w-full justify-center px-4 py-4 md:px-6 md:py-6 flex gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+        >
+            <motion.div
+                className="flex justify-center"
+                transition={{ duration: 0.3 }}
+            >
+                <motion.div
+                    className="w-[24rem] space-y-4"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                        mass: 0.8,
+                        delay: 0.1
+                    }}
+                >
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 25,
+                            mass: 0.8
+                        }}
+                    >
+                        <WalletCard
+                            faucetAddress={faucetAddress}
+                            setFaucetAddress={setFaucetAddress}
+                            setToShow={setToShow}
+                        />
+                    </motion.div>
+                    {toShow === "activity" && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 25,
+                                mass: 0.8
+                            }}
+                        >
+                            <ActivityCardList />
+                        </motion.div>
                     )}
-                    {toShow === "faucet" && (
-                        <div className="flex justify-center w-full pt-3">
-                            <div className="w-full max-w-[400px]">
+                    {
+                        toShow === "faucet" && (
+                            <WalletActionCard>
                                 <Faucet onClose={() => setToShow("activity")} />
-                            </div>
-                        </div>
-                    )}
-                    {toShow === "receive" && (
-                        <div className="flex justify-center w-full pt-3">
-                            <div className="w-full max-w-[400px]">
+                            </WalletActionCard>
+                        )
+                    }
+                    {
+                        toShow === "receive" && (
+                            <WalletActionCard>
                                 <ReceiveCard onClose={() => setToShow("activity")} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div >
+                            </WalletActionCard>
+                        )
+                    }
+                    {toShow === "send" && (
+                        <WalletActionCard>
+                            <SendCard selectedAddress={faucetAddress} />
+                        </WalletActionCard>
+                    )
+                    }
+                </motion.div>
+            </motion.div>
+
+        </motion.div >
     )
+}
+
+
+function WalletActionCard(
+    {
+        children,
+    }: {
+        children: React.ReactNode
+    }
+) {
+    return (
+        <motion.div
+            className="flex justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+                type: "spring",
+                stiffness: 400,
+                damping: 25,
+                mass: 0.8
+            }}
+        >
+            <div className="w-[24rem]">
+                {children}
+            </div>
+        </motion.div>
+    )
+
 }

@@ -170,7 +170,7 @@ export function ActivityCardList() {
     }
 
     return (
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[298px]">
             <div className="space-y-3">
                 {transactions.map((transaction, index) => (
                     <TransactionItem key={index} transaction={transaction} />

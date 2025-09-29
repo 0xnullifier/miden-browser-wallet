@@ -24,48 +24,27 @@ const ThemeProviderContext = React.createContext<ThemeProviderState>(initialStat
 
 export function ThemeProvider({
     children,
-    defaultTheme = "system",
+    defaultTheme = "light",
     storageKey = "miden-ui-theme",
     ...props
 }: ThemeProviderProps) {
     const [theme, setTheme] = React.useState<Theme>(() => {
-        // Avoid hydration mismatch by checking if we're in the browser
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem(storageKey) as Theme) || defaultTheme
-        }
-        return defaultTheme
+        // Always return 'light' theme
+        return "light"
     })
 
     React.useEffect(() => {
-        // Set theme from localStorage on client-side hydration
-        if (typeof window !== 'undefined') {
-            const storedTheme = localStorage.getItem(storageKey) as Theme
-            if (storedTheme && storedTheme !== theme) {
-                setTheme(storedTheme)
-            }
-        }
-    }, [storageKey, theme])
-
-    React.useEffect(() => {
+        // Always set light theme
         const root = window.document.documentElement
-
         root.classList.remove("light", "dark")
-
-        if (theme === "system") {
-            const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-
-            root.classList.add(systemTheme)
-            return
-        }
-
-        root.classList.add(theme)
-    }, [theme])
+        root.classList.add("light")
+    }, [])
 
     const value = {
-        theme,
+        theme: "light" as Theme,
         setTheme: (theme: Theme) => {
-            localStorage.setItem(storageKey, theme)
-            setTheme(theme)
+            // Always maintain light theme, ignore any theme changes
+            return
         },
     }
 

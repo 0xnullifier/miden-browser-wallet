@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, ArrowUpRight, ArrowDownLeft, Droplets, Copy, Check, ExternalLink } from "lucide-react";
 import { formatTimestamp, renderTransactionTypeBadge, truncateAddress } from "./common";
 
-export function TransactionDetails() {
+export default function TransactionDetails() {
     const [loading, setLoading] = useState(true);
     const { id } = useParams<{ id: string }>();
     const [transaction, setTransaction] = useState<BackendTransaction | null>(null);
@@ -163,16 +163,18 @@ export function TransactionDetails() {
                                 type="button"
                                 className="ml-2 p-1 rounded hover:bg-muted transition"
                                 onClick={() => {
-                                    navigator.clipboard.writeText(transaction.sender);
-                                    setSenderCopied(true);
-                                    setTimeout(() => setSenderCopied(false), 750);
+                                    if (typeof document !== "undefined") {
+                                        navigator.clipboard.writeText(transaction.sender);
+                                        setSenderCopied(true);
+                                        setTimeout(() => setSenderCopied(false), 750);
+                                    }
                                 }}
                                 title="Copy Transaction ID"
                             >
                                 {senderCopied ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                             </button>
-                            <span className="hidden sm:inline" onClick={() => window.open(`/dashboard/address/${transaction.sender}`, "_blank")}>{transaction.sender}</span>
-                            <span className="sm:hidden" onClick={() => window.open(`/dashboard/address/${transaction.sender}`, "_blank")}>{`${transaction.sender.slice(0, 10)}...${transaction.sender.slice(-8)}`}</span>
+                            <a className="hidden sm:inline" href={`/dashboard/address/${transaction.sender}`} target="_blank">{transaction.sender}</a>
+                            <a className="sm:hidden" href={`/dashboard/address/${transaction.sender}`} target="_blank">{`${transaction.sender.slice(0, 10)}...${transaction.sender.slice(-8)}`}</a>
                         </span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-3 sm:py-4 border-b border-border">
@@ -202,10 +204,10 @@ export function TransactionDetails() {
                         <div className="flex flex-col gap-3">
                             <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-2 border-b border-border">
                                 <span className="text-muted-foreground text-sm sm:text-base">Note ID</span>
-                                <span className="font-mono font-medium text-sm sm:text-base break-all flex items-center gap-2 underline underline-offset-2 hover:text-primary cursor-pointer" onClick={() => window.open(`https://testnet.midenscan.com/note/${transaction.note_id.note_id}`)} title={transaction.note_id.note_id}>
+                                <a className="font-mono font-medium text-sm sm:text-base break-all flex items-center gap-2 underline underline-offset-2 hover:text-primary cursor-pointer" href={`https://testnet.midenscan.com/note/${transaction.note_id.note_id}`} title={transaction.note_id.note_id}>
                                     <span className="hidden sm:inline">{truncateAddress(transaction.note_id.note_id, 8, 6)}</span>
                                     <span className="sm:hidden">{truncateAddress(transaction.note_id.note_id, 10, 8)}</span>
-                                </span>
+                                </a>
                             </div>
                             <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 py-2 border-b border-border">
                                 <span className="text-muted-foreground text-sm sm:text-base">Note Type</span>
@@ -219,6 +221,6 @@ export function TransactionDetails() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

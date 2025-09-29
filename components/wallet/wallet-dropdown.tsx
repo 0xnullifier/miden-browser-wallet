@@ -26,14 +26,15 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Textarea } from "../ui/textarea"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function WalletDropdown() {
     const account = useMidenSdkStore((state) => state.account)
     const [loading, setLoading] = useState(false)
     const [importLoading, setImportLoading] = useState(false)
     const [importDialogOpen, setImportDialogOpen] = useState(false)
-    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
     const [importStr, setImportStr] = useState("")
+    const isMobile = useIsMobile()
 
     const handleExportAccount = async () => {
         setLoading(true)
@@ -116,7 +117,7 @@ export function WalletDropdown() {
             <>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <MoreHorizontal className="h-4 w-4 rotate-90" />
                         </Button>
                     </DropdownMenuTrigger>

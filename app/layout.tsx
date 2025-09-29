@@ -10,18 +10,20 @@ import { TransactionProviderC } from "@/providers/transaction-provider";
 import { Toaster } from "sonner";
 import { WebRtcProvider } from "@/providers/webrtc-provider";
 import { ReceiverProvider } from "@/providers/receiver-provider";
+import { Footer } from "@/components/footer";
 
-const geistSans = Inter({
+const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = DM_Mono({
+const mono = DM_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ['300', '400', '500'],
   style: ["normal", "italic"],
 });
+
 
 export const metadata: Metadata = {
   title: "Miden Web Wallet",
@@ -36,13 +38,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/miden_wallet_logo_centered.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${mono.variable} antialiased min-h-screen flex flex-col bg-white bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]`}
       >
         <ThemeProvider
-          defaultTheme="system"
+          defaultTheme="light"
         >
           <MidenSdkProvider>
             <BalanceProvider>
@@ -51,7 +53,10 @@ export default function RootLayout({
                   <ReceiverProvider>
                     <BackgroundProcesses />
                     <Navbar />
-                    {children}
+                    <main className="flex-1">
+                      {children}
+                    </main>
+                    <Footer />
                     <Toaster />
                   </ReceiverProvider>
                 </WebRtcProvider>
@@ -59,6 +64,7 @@ export default function RootLayout({
             </BalanceProvider>
           </MidenSdkProvider>
         </ThemeProvider>
+
       </body>
     </html >
   );

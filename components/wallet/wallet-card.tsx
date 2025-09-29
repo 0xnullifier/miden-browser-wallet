@@ -2,13 +2,12 @@
 
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader } from "../ui/card"
-import { Button } from "../ui/button"
-import { Activity, Droplets, MoreHorizontal, QrCode, Send } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { WalletDropdown } from "./wallet-dropdown"
 import { TickerDropdown } from "./ticker-dropdown"
+import { SendSvg, ActivtySvg, ReceiveSvg, FaucetSvg } from "@/components/ui/icons"
 export type toShowType = "send" | "activity" | "receive" | "faucet"
 
 interface WalletCardProps {
@@ -21,27 +20,27 @@ export function Balance({ address }: { address: string }) {
     const balanceMap = useBalanceStore((state) => state.balances)
     const faucetInfos = useBalanceStore((state) => state.faucets)
     const symbol = faucetInfos.find((faucet) => faucet.address === address)?.symbol || "MDN"
-    return <div className="text-4xl sm:text-5xl font-light mb-4 leading-tight py-3 flex items-end gap-2">{Number(balanceMap[address]).toFixed(2)}<p className="text-2xl">{symbol}</p></div>
+    return <div className="text-4xl sm:text-5xl font-light leading-tight py-2 flex flex-col items-center">{Number(balanceMap[address]).toFixed(2)}<p className="text-2xl text-primary font-normal">{symbol}</p></div>
 }
 
 const ACTIONS = [
     {
-        icon: Send,
+        icon: <SendSvg />,
         label: "SEND",
         type: "send" as toShowType,
     },
     {
-        icon: Activity,
+        icon: <ActivtySvg />,
         label: "ACTIVITY",
         type: "activity" as toShowType,
     },
     {
-        icon: QrCode,
+        icon: <ReceiveSvg />,
         label: "RECEIVE",
         type: "receive" as toShowType,
     },
     {
-        icon: Droplets,
+        icon: <FaucetSvg />,
         label: "FAUCET",
         type: "faucet" as toShowType,
     },
@@ -60,64 +59,65 @@ export function WalletCard({ faucetAddress, setFaucetAddress, setToShow }: Walle
         }
     }, [account])
     return (
-
-        <Card className="bg-card border-border ring-1 ring-primary/10">
-            <CardHeader className="pb-1">
-                <div className="flex justify-between items-center">
-                    <span
-                        className="text-muted-foreground font-mono cursor-pointer hover:text-primary relative transition-colors"
-                        onClick={async () => {
-                            await navigator.clipboard.writeText(address)
-                            setCopied(true)
-                            setTimeout(() => setCopied(false), 1200)
-                        }}
-                        title="Copy address"
-                    >
-                        {copied && (
-                            <span className="absolute left-1/2 -translate-x-1/2 -top-6 text-xs bg-popover border border-border px-2 py-0.5 z-10 text-popover-foreground">
-                                Copied!
-                            </span>
-                        )}
-                        {`${address.slice(0, 8)}...${address.slice(-4)}`}
-                    </span>
-                    <div className="flex items-center gap-3">
-                        <TickerDropdown selectedTicker={faucetAddress} setSelectedTicker={setFaucetAddress} />
-                        <WalletDropdown />
+        <div>
+            <div className="w-full h-8 bg-primary flex items-center justify-center" ><p className="text-white font-medium">MIDEN BROWSER WALLET</p></div>
+            <Card className="bg-card border-border ring-1 ring-primary/10 py-2 gap-0">
+                <CardHeader className="border-b pb-0">
+                    <div className="flex justify-between items-center">
+                        <span
+                            className="font-mono cursor-pointer hover:text-primary relative transition-colors"
+                            onClick={async () => {
+                                await navigator.clipboard.writeText(address)
+                                setCopied(true)
+                                setTimeout(() => setCopied(false), 1200)
+                            }}
+                            title="Copy address"
+                        >
+                            {copied && (
+                                <span className="absolute left-1/2 -translate-x-1/2 -top-6 text-xs bg-popover border border-border px-2 py-0.5 z-10 text-popover-foreground">
+                                    Copied!
+                                </span>
+                            )}
+                            {`${address.slice(0, 8)}...${address.slice(-4)}`}
+                        </span>
+                        <div className="flex items-center gap-3">
+                            <WalletDropdown />
+                            <TickerDropdown selectedTicker={faucetAddress} setSelectedTicker={setFaucetAddress} />
+                        </div>
                     </div>
-                </div>
-            </CardHeader>
+                </CardHeader>
 
-            <CardContent className="space-y-2 mt-[-15px]">
-                {/* Balance */}
-                <Balance address={faucetAddress} />
-                <div className="flex justify-between gap-2 pb-5">
-                    {ACTIONS.map((action) => (
-                        <ActionButton
-                            key={action.type}
-                            icon={action.icon}
-                            label={action.label}
-                            setToShow={setToShow}
-                            type={action.type}
-                        />
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+                <CardContent className="px-0">
+                    {/* Balance */}
+                    <Balance address={faucetAddress} />
+                    <div className="flex justify-between gap-2 py-4 border-t px-6">
+                        {ACTIONS.map((action) => (
+                            <ActionButton
+                                key={action.type}
+                                icon={action.icon}
+                                label={action.label}
+                                setToShow={setToShow}
+                                type={action.type}
+                            />
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     )
 }
 
-function ActionButton({ icon: Icon, label, setToShow, type }: { icon: React.ComponentType<any>, label: string, setToShow: (val: toShowType) => void, type: toShowType }) {
+function ActionButton({ icon, label, setToShow, type }: { icon: React.ReactNode, label: string, setToShow: (val: toShowType) => void, type: toShowType }) {
 
     return (
         <div className="flex flex-col items-center gap-2">
-            <Button
-                variant="secondary"
-                className="rounded-full bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 p-0 h-12 w-12 sm:h-14 sm:w-14 flex items-center justify-center"
+            <span
                 onClick={() => setToShow(type)}
+                className="cursor-pointer"
             >
-                <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white dark:text-primary-foreground" />
-            </Button>
-            <span className="text-xs text-muted-foreground">{label}</span>
+                {icon}
+            </span>
+            <span className="text-xs">{label}</span>
         </div>
     )
 
