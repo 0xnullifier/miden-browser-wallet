@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown"
 import { MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, RPC_ENDPOINT } from "@/lib/constants"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
-import { AlertCircleIcon, Copy, CopyCheck, Delete, Download, Import, Loader2, MoreHorizontal, Settings, Trash2, Upload } from "lucide-react"
+import { AlertCircleIcon, Copy, CopyCheck, Delete, Download, Import, Loader2, MoreHorizontal, Network, Settings, Trash2, Upload } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { LoadingSpinner } from "../ui/loading-spinner"
@@ -77,7 +77,7 @@ export function WalletDropdown() {
     }
 
     const importAccount = async () => {
-        const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+        const { WebClient, Address, NetworkId, AccountInterface } = await import("@demox-labs/miden-sdk");
         const client = await WebClient.createClient(RPC_ENDPOINT);
         setImportLoading(true)
         if (!importStr || importStr.length === 0) {
@@ -91,13 +91,14 @@ export function WalletDropdown() {
             indexedDB.deleteDatabase("MidenClientDB")
             const b64AccountString = importStr.split(":")[0];
             const newAccountId = importStr.split(":")[1];
+            console.log(newAccountId)
             const byteArray = Uint8Array.from(atob(b64AccountString), c => c.charCodeAt(0));
             await client.importAccountFile(byteArray);
             const account = await client.getAccount(Address.fromBech32(newAccountId).accountId());
             if (!account) {
                 throw new Error("Imported account not found after import");
             }
-            localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, account.serialize().toString());
+            localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, account.id().toBech32(NetworkId.Testnet, AccountInterface.Unspecified));
             toast.success("Account imported successfully!", { position: "top-right" });
             window.location.reload()
         } catch (error) {

@@ -49,8 +49,13 @@ export async function importNote(noteBytes: any, receiver: string) {
             consumeRequest,
         );
         const digest = txExecutionResult.executedTransaction().id().toHex();
-
-        await client.submitTransaction(txExecutionResult, prover);
+        try {
+            await client.submitTransaction(txExecutionResult, prover);
+        } catch (e) {
+            console.log(e)
+            toast.info("Remote proving failed, proving locally...")
+            await client.submitTransaction(txExecutionResult);
+        }
         sucessTxToast("Received note successfully 🚀", digest)
     } catch (error) {
         console.error("Error importing private note:", error);

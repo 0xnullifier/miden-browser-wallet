@@ -94,6 +94,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
             } catch (error) {
                 console.error("Error consuming notes:", error);
             } finally {
+                console.log("Terminating client after consuming pending notes");
                 set({ consumingLoading: false });
                 client.terminate()
             }
