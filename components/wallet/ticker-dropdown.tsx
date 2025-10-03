@@ -6,10 +6,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useBalanceStore } from "@/providers/balance-provider"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useState } from "react"
+import { FaucetInfo } from "@/store/balance"
 
 interface Props {
-    selectedTicker: string
-    setSelectedTicker: (ticker: string) => void
+    selectedTicker: FaucetInfo
+    setSelectedTicker: (ticker: FaucetInfo) => void
 }
 
 const sliceAddress = (address: string) => {
@@ -21,7 +22,7 @@ export function TickerDropdown({ selectedTicker, setSelectedTicker }: Props) {
     const faucetInfo = useBalanceStore((state) => state.faucets);
     const balances = useBalanceStore((state) => state.balances);
     const isMobile = useIsMobile();
-    const symbol = faucetInfo.find((faucet) => faucet.address === selectedTicker)?.symbol || "MDN"
+    const symbol = faucetInfo.find((faucet) => faucet.address === selectedTicker.address)?.symbol || "MDN"
 
     const [displayedItems, setDisplayedItems] = useState(4);
     const itemsPerPage = 4;
@@ -32,8 +33,8 @@ export function TickerDropdown({ selectedTicker, setSelectedTicker }: Props) {
         const newDisplayedItems = Math.min(displayedItems + itemsPerPage, totalItems);
         setDisplayedItems(newDisplayedItems);
     };
-
-    if (balances[selectedTicker] === undefined) {
+    console.log(balances, selectedTicker.symbol);
+    if (balances[selectedTicker.address] === undefined) {
         return <div className="h-8 w-20 rounded-md animate-pulse bg-muted" />
     }
 
@@ -54,11 +55,14 @@ export function TickerDropdown({ selectedTicker, setSelectedTicker }: Props) {
                 <div className="">
                     <div className="">
                         {faucetInfo.slice(0, displayedItems).map((asset, index) => {
-                            if (!balances[asset.address]) return null;
+                            if (balances[asset.address] === undefined) {
+                                console.log(balances[asset.address])
+                                return null
+                            };
                             return (
                                 <DropdownMenuItem
                                     key={asset.address}
-                                    onClick={() => setSelectedTicker(asset.address)}
+                                    onClick={() => setSelectedTicker(asset)}
                                     className={`focus:ring-0 focus:outline-none p-0`}
                                 >
                                     <div className="flex items-center justify-between w-full border-b px-2">

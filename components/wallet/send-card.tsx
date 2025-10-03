@@ -24,10 +24,18 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { FaucetInfo } from "@/store/balance"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown"
+import { ChevronDown } from "lucide-react"
 
 
 // Send Card Component
-export function SendCard({ selectedAddress }: { selectedAddress: string }) {
+export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
     const [amount, setAmount] = useState("")
     const [recipient, setRecipient] = useState("")
     const [isOneToMany, setIsOneToMany] = useState(false)
@@ -39,9 +47,8 @@ export function SendCard({ selectedAddress }: { selectedAddress: string }) {
 
     const account = useMidenSdkStore((state) => state.account)
     const balances = useBalanceStore((state) => state.balances)
-    const faucetInfo = useBalanceStore((state) => state.faucets);
-    const balance = balances[selectedAddress]
-    const decimals = faucetInfo.find((faucet) => faucet.address === selectedAddress)?.decimals || DECIMALS
+    const balance = balances[selectedFaucet.address]
+    const decimals = selectedFaucet.decimals || DECIMALS
 
     const [receiverOfflineDialogOpen, setReceiverOfflineDialog] = useState(false)
     const clientRef = useRef<any | null>(null);
@@ -100,7 +107,7 @@ export function SendCard({ selectedAddress }: { selectedAddress: string }) {
         }
 
         try {
-            const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, selectedAddress, decimals, delegate)
+            const { tx, note } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, selectedFaucet.address, decimals, delegate)
             setNote(note)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
             setNoteBytes(Array.from(note.serialize()))
@@ -121,7 +128,7 @@ export function SendCard({ selectedAddress }: { selectedAddress: string }) {
 
     const processOfflineTransaction = async () => {
         try {
-            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, selectedAddress, decimals, delegate)
+            const { tx } = await send(clientRef.current, account, recipient, Number(amount), isPrivate, selectedFaucet.address, decimals, delegate)
             sucessTxToast("Transaction sent successfully", tx.executedTransaction().id().toHex())
         }
         catch (error) {
@@ -418,14 +425,6 @@ export function SendCard({ selectedAddress }: { selectedAddress: string }) {
                                 onChange={(e) => setRecipient(e.target.value)}
                                 className="font-mono text-sm h-10 flex-1"
                             />
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-10 w-10 p-0 flex-shrink-0"
-                                title=""
-                            >
-                                <Camera className="h-4 w-4" />
-                            </Button>
                         </div>
                     </div>
 
@@ -552,7 +551,7 @@ export function SendCard({ selectedAddress }: { selectedAddress: string }) {
                 </DialogContent>
             </Dialog>
 
-            <OneToMany isOneToMany={isOneToMany} setIsOneToMany={setIsOneToMany} amount={amount} receipient={recipient} />
+            <OneToMany isOneToMany={isOneToMany} setIsOneToMany={setIsOneToMany} amount={amount} receipient={recipient} selectedFaucetId={selectedFaucet} />
 
         </div>
     )

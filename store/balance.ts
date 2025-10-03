@@ -109,6 +109,7 @@ export const createBalanceStore = () => create<BalanceState, [["zustand/immer", 
             const txId = await axios.get(FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()))
             sucessTxToast("Faucet used successfully", txId.data.replaceAll(' ', ''));
         } catch (error) {
+            toast.error("Faucet request failed, it may be overloaded. Reach out in telegram for help.", { position: "top-right" });
             console.error("Faucet request failed:", error);
         } finally {
             set({ faucetLoading: false });

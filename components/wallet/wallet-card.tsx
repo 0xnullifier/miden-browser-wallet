@@ -8,19 +8,19 @@ import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { WalletDropdown } from "./wallet-dropdown"
 import { TickerDropdown } from "./ticker-dropdown"
 import { SendSvg, ActivtySvg, ReceiveSvg, FaucetSvg } from "@/components/ui/icons"
+import { FaucetInfo } from "@/store/balance"
 export type toShowType = "send" | "activity" | "receive" | "faucet"
 
 interface WalletCardProps {
-    faucetAddress: string
-    setFaucetAddress: (address: string) => void
+    faucet: FaucetInfo
+    setFaucet: (faucet: FaucetInfo) => void
     setToShow: (view: toShowType) => void
 }
 
-export function Balance({ address }: { address: string }) {
+export function Balance({ faucet }: { faucet: FaucetInfo }) {
     const balanceMap = useBalanceStore((state) => state.balances)
-    const faucetInfos = useBalanceStore((state) => state.faucets)
-    const symbol = faucetInfos.find((faucet) => faucet.address === address)?.symbol || "MDN"
-    return <div className="text-4xl sm:text-5xl font-light leading-tight py-2 flex flex-col items-center">{Number(balanceMap[address]).toFixed(2)}<p className="text-2xl text-primary font-normal">{symbol}</p></div>
+    const symbol = faucet.symbol || "MDN"
+    return <div className="text-4xl sm:text-5xl font-light leading-tight py-2 flex flex-col items-center">{Number(balanceMap[faucet.address]).toFixed(2)}<p className="text-2xl text-primary font-normal">{symbol}</p></div>
 }
 
 const ACTIONS = [
@@ -49,7 +49,7 @@ const ACTIONS = [
 
 
 
-export function WalletCard({ faucetAddress, setFaucetAddress, setToShow }: WalletCardProps) {
+export function WalletCard({ faucet, setFaucet, setToShow }: WalletCardProps) {
     const [copied, setCopied] = useState(false)
     const [address, setAddress] = useState<string>("")
     const account = useMidenSdkStore((state) => state.account)
@@ -82,14 +82,14 @@ export function WalletCard({ faucetAddress, setFaucetAddress, setToShow }: Walle
                         </span>
                         <div className="flex items-center gap-3">
                             <WalletDropdown />
-                            <TickerDropdown selectedTicker={faucetAddress} setSelectedTicker={setFaucetAddress} />
+                            <TickerDropdown selectedTicker={faucet} setSelectedTicker={setFaucet} />
                         </div>
                     </div>
                 </CardHeader>
 
                 <CardContent className="px-0">
                     {/* Balance */}
-                    <Balance address={faucetAddress} />
+                    <Balance faucet={faucet} />
                     <div className="flex justify-between gap-2 py-4 border-t px-6">
                         {ACTIONS.map((action) => (
                             <ActionButton

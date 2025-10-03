@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SendCard } from "@/components/wallet/send-card"
@@ -12,16 +12,18 @@ import { LoadingTimeoutDialog } from "@/components/ui/loading-timeout-dialog"
 import { useMidenSdkStore } from "@/providers/sdk-provider"
 import { useLoadingTimeout } from "@/hooks/use-loading-timeout"
 import { nukeWalletDatabase } from "@/lib/utils"
-import { FAUCET_ID } from "@/lib/constants"
 import { toast } from "sonner"
 import { motion } from "motion/react"
+import { FaucetInfo } from "@/store/balance"
+import { useBalanceStore } from "@/providers/balance-provider"
 
 
 export default function WalletInterface() {
     const isLoading = useMidenSdkStore((state) => state.isLoading)
     const initializeSdk = useMidenSdkStore((state) => state.initializeSdk)
     const [toShow, setToShow] = useState<toShowType>("activity")
-    const [faucetAddress, setFaucetAddress] = useState<string>(FAUCET_ID)
+    const faucets = useBalanceStore((state) => state.faucets)
+    const [faucet, setFaucet] = useState<FaucetInfo>(faucets[0])
     const [showTimeoutDialog, setShowTimeoutDialog] = useState(false)
 
     const { isTimeoutReached, elapsedTime, resetTimeout } = useLoadingTimeout(isLoading, {
@@ -195,8 +197,8 @@ export default function WalletInterface() {
                         }}
                     >
                         <WalletCard
-                            faucetAddress={faucetAddress}
-                            setFaucetAddress={setFaucetAddress}
+                            faucet={faucet}
+                            setFaucet={setFaucet}
                             setToShow={setToShow}
                         />
                     </motion.div>
@@ -231,7 +233,7 @@ export default function WalletInterface() {
                     }
                     {toShow === "send" && (
                         <WalletActionCard>
-                            <SendCard selectedAddress={faucetAddress} />
+                            <SendCard selectedFaucet={faucet} />
                         </WalletActionCard>
                     )
                     }
