@@ -1,9 +1,9 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY } from "./constants"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -14,28 +14,30 @@ export function nukeWalletDatabase(): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       // Clear IndexedDB
-      const deleteDB = indexedDB.deleteDatabase("MidenClientDB")
+      const deleteDB = indexedDB.deleteDatabase("MidenClientDB");
 
       deleteDB.onsuccess = () => {
         // Clear localStorage
-        localStorage.removeItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY)
+        localStorage.removeItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY);
 
-        resolve()
-      }
+        resolve();
+      };
 
       deleteDB.onerror = () => {
-        console.error("Failed to delete IndexedDB:", deleteDB.error)
-        reject(deleteDB.error)
-      }
+        console.error("Failed to delete IndexedDB:", deleteDB.error);
+        reject(deleteDB.error);
+      };
 
       deleteDB.onblocked = () => {
-        console.warn("Database deletion blocked, attempting localStorage cleanup only")
-        localStorage.removeItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY)
-        resolve()
-      }
+        console.warn(
+          "Database deletion blocked, attempting localStorage cleanup only",
+        );
+        localStorage.removeItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY);
+        resolve();
+      };
     } catch (error) {
-      console.error("Failed to nuke wallet database:", error)
-      reject(error)
+      console.error("Failed to nuke wallet database:", error);
+      reject(error);
     }
-  })
+  });
 }

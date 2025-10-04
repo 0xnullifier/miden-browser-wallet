@@ -4,11 +4,11 @@ import { UseCase } from "@/components/docs/use-case";
 import React from "react";
 
 export default function Dashboard() {
-    return (
-        <div className="w-full overflow-hidden">
-            <QuickStart />
-            <Concepts />
-            <UseCase />
-        </div>
-    )
+  return (
+    <div className="w-full overflow-hidden">
+      <QuickStart />
+      <Concepts />
+      <UseCase />
+    </div>
+  );
 }

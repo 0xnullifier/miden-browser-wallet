@@ -12,8 +12,7 @@ async function fnThatUsesClient(){
 
     // terminate the client when done
     client.terminate();
-}`
-
+}`;
 
 export const CREATE_ACCOUNT_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
 
@@ -65,7 +64,7 @@ async function fetchAccount() {
 
     // terminate the client when done
     client.terminate();
-}`
+}`;
 
 export const CREAT_FAUCET_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
 
@@ -95,7 +94,7 @@ async function createFaucet() {
     
     // terminate the client when done
     client.terminate();
-}`
+}`;
 
 export const MINT_TOKENS_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
 export const TX_PROVER_ENDPOINT = 'https://tx-prover.testnet.miden.io';
@@ -132,8 +131,7 @@ async function mintTokens(mintTo: string) {
 
     // terminate the client when done
     client.terminate();
-}`
-
+}`;
 
 export const SETUP = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
 
@@ -165,7 +163,6 @@ async function setup() {
 
     return { client, sender, receiver, fungibleFaucetAccount };
 } `;
-
 
 export const CONSUME_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
 export const TX_PROVER_ENDPOINT = 'https://tx-prover.testnet.miden.io';
@@ -253,7 +250,6 @@ async function sendTokens(
     // terminate the client when done
     client.terminate();
 }`;
-
 
 export const UNAUTH_NOTES_SEND_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; // testnet RPC
 
@@ -376,4 +372,4 @@ async fn index_transactions() {
     }
 
 }
-`
+`;

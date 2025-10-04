@@ -15,8 +15,8 @@ const nextConfig: NextConfig = {
         source: "/wallet",
         destination: "/",
         permanent: true,
-      }
-    ]
+      },
+    ];
   },
 };
 

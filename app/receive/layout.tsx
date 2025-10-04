@@ -1,17 +1,9 @@
 import { Suspense } from "react";
 
 function FallBack() {
-    return <>Receive Page</>
+  return <>Receive Page</>;
 }
 
-
-
-
 export default function Layout({ children }: { children: React.ReactNode }) {
-    return (
-        <Suspense fallback={<FallBack />}>
-            {children}
-        </Suspense>
-
-    );
+  return <Suspense fallback={<FallBack />}>{children}</Suspense>;
 }

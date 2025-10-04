@@ -1,3 +1,3 @@
-import TransactionDetails from '@/components/dashboard/tx-detail';
+import TransactionDetails from "@/components/dashboard/tx-detail";
 
 export default TransactionDetails;

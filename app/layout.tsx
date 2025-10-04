@@ -20,10 +20,9 @@ const inter = Inter({
 const mono = DM_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ['300', '400', '500'],
+  weight: ["300", "400", "500"],
   style: ["normal", "italic"],
 });
-
 
 export const metadata: Metadata = {
   title: "Miden Web Wallet",
@@ -41,11 +40,9 @@ export default function RootLayout({
         <link rel="icon" href="/miden_wallet_logo_centered.svg" />
       </head>
       <body
-        className={`${inter.variable} ${mono.variable} antialiased min-h-screen flex flex-col bg-white bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]`}
+        className={`${inter.variable} ${mono.variable} antialiased min-h-screen flex flex-col bg-white bg-[linear-gradient(to_right,#80808007_1px,transparent_1px),linear-gradient(to_bottom,#80808007_1px,transparent_1px)] bg-[size:24px_24px]`}
       >
-        <ThemeProvider
-          defaultTheme="light"
-        >
+        <ThemeProvider defaultTheme="light">
           <MidenSdkProvider>
             <BalanceProvider>
               <TransactionProviderC>
@@ -53,9 +50,7 @@ export default function RootLayout({
                   <ReceiverProvider>
                     <BackgroundProcesses />
                     <Navbar />
-                    <main className="flex-1">
-                      {children}
-                    </main>
+                    <main className="flex-1">{children}</main>
                     <Footer />
                     <Toaster />
                   </ReceiverProvider>
@@ -64,8 +59,7 @@ export default function RootLayout({
             </BalanceProvider>
           </MidenSdkProvider>
         </ThemeProvider>
-
       </body>
-    </html >
+    </html>
   );
 }

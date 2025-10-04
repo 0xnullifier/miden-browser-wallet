@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useWebRtc } from "@/hooks/useWebRtc";
 import { useObserveBalance } from "@/providers/balance-provider";
@@ -9,11 +9,10 @@ import { useInitAndPollSyncState } from "@/providers/sdk-provider";
  * It's isolated so that its internal state updates don't cause parent components to re-render.
  */
 export function BackgroundProcesses() {
-    useInitAndPollSyncState();
-    useObserveBalance()
-    useWebRtc();
+  useInitAndPollSyncState();
+  useObserveBalance();
+  useWebRtc();
 
-    // This component renders nothing but handles all background processes
-    return null;
+  // This component renders nothing but handles all background processes
+  return null;
 }
-
