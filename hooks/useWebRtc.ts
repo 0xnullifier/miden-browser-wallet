@@ -243,8 +243,8 @@ const handleDataChannelMessage = async (
         dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
         toast.promise(importNote(message.bytes, message.receiver), {
           position: "top-right",
-          loading: "Importing private note...",
-          success: "Private note imported successfully!",
+          loading: "Importing note...",
+          success: "Note imported successfully!",
           error: "Failed to import private note",
         });
         setStage("noteReceived");

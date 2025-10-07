@@ -182,12 +182,12 @@ export function ActivityCardList() {
           );
           const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
             if (tr.outputNotes().notes().length > 0) {
-              return { tr, inputNote: undefined };
+              return { tr, inputNotes: undefined };
             } else {
               const inputNotesForTr = inputNotes.filter(
                 (note) => note.consumerTransactionId() === tr.id().toHex(),
               );
-              return { tr, inputNote: inputNotesForTr };
+              return { tr, inputNotes: inputNotesForTr };
             }
           });
           await loadTransactions(zippedInputeNotesAndTr);
