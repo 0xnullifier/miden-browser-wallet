@@ -13,6 +13,7 @@ import {
   FaucetSvg,
 } from "@/components/ui/icons";
 import { FaucetInfo } from "@/store/balance";
+import { numToString } from "@/lib/utils";
 export type toShowType = "send" | "activity" | "receive" | "faucet";
 
 interface WalletCardProps {
@@ -26,7 +27,7 @@ export function Balance({ faucet }: { faucet: FaucetInfo }) {
   const symbol = faucet.symbol || "MDN";
   return (
     <div className="text-4xl sm:text-5xl font-light leading-tight py-2 flex flex-col items-center">
-      {Number(balanceMap[faucet.address]).toFixed(2)}
+      {numToString(balanceMap[faucet.address])}
       <p className="text-2xl text-primary font-normal">{symbol}</p>
     </div>
   );

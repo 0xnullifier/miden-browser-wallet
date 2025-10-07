@@ -12,7 +12,7 @@ import {
   Clock,
   XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, numToString } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DECIMALS, RPC_ENDPOINT } from "@/lib/constants";
@@ -29,7 +29,7 @@ function formatAmount(
   } else if (Math.abs(value) >= 1000) {
     return `$${(value / 1000).toFixed(0)}k`;
   }
-  return `${value.toFixed(3)} ${symbol}`;
+  return `${numToString(value)} ${symbol}`;
 }
 
 function getTransactionIcon(

@@ -32,28 +32,23 @@ function transactionRecordToUITransaction({
       .outputNotes()
       .notes()
       .map((note) => note.intoFull());
-    const amount = outputNotes.reduce((acc: bigint, note) => {
-      const fungibleAssets = note?.assets().fungibleAssets();
-      return (
-        acc +
-        (fungibleAssets?.reduce(
-          (sum: bigint, asset) => sum + asset.amount(),
-          BigInt(0),
-        ) || BigInt(0))
-      );
-    }, BigInt(0));
-    if (amount === BigInt(0)) {
-      return null;
-    }
-    // we know that there will be only one output note for outgoing transaction
-    const faucetId = outputNotes[0]
-      ?.assets()
-      .fungibleAssets()[0]
-      ?.faucetId()
-      .toString();
-    const statusObject = tr.transactionStatus();
-    return [
-      {
+    const transactions = outputNotes.map((note) => {
+      const amount = note
+        .assets()
+        .fungibleAssets()
+        .reduce((acc: bigint, asset) => acc + asset.amount(), BigInt(0));
+
+      if (amount === BigInt(0)) {
+        return null;
+      }
+
+      const faucetId = note
+        ?.assets()
+        .fungibleAssets()[0]
+        ?.faucetId()
+        .toString();
+      const statusObject = tr.transactionStatus();
+      return {
         id: tr.id().toHex(),
         type: "Outgoing",
         amount,
@@ -64,8 +59,9 @@ function transactionRecordToUITransaction({
           : statusObject.isPending()
             ? "isPending"
             : "isFailed",
-      },
-    ];
+      };
+    });
+    return transactions;
   } else {
     if (!inputNotes) {
       throw new Error(

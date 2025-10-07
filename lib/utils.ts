@@ -41,3 +41,13 @@ export function nukeWalletDatabase(): Promise<void> {
     }
   });
 }
+
+export function numToString(num: number): string {
+  if (!num) return "0.00";
+  const decimals = num.toString().split(".")[1]?.length;
+  if (decimals > 2) {
+    return num.toString();
+  } else {
+    return num.toFixed(2);
+  }
+}

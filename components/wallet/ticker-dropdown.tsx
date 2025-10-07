@@ -12,6 +12,7 @@ import { useBalanceStore } from "@/providers/balance-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { FaucetInfo } from "@/store/balance";
+import { numToString } from "@/lib/utils";
 
 interface Props {
   selectedTicker: FaucetInfo;
@@ -89,7 +90,7 @@ export function TickerDropdown({ selectedTicker, setSelectedTicker }: Props) {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-base">
-                        {balances[asset.address].toFixed(2)}
+                        {numToString(balances[asset.address])}
                       </span>
                       <span className="flex justify-end text-xs font-normal">
                         {asset.symbol}
