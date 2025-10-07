@@ -98,7 +98,7 @@ export function OneToMany({
         account,
         rows.map((row) => ({
           to: row.address,
-          amount: BigInt(Math.trunc(parseFloat(row.amount))),
+          amount:parseFloat(row.amount),
           faucet: row.faucetId,
         })),
       );

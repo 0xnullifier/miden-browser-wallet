@@ -32,10 +32,8 @@ export async function send(
     const noteType = isPrivate ? NoteType.Private : NoteType.Public;
     const FAUCET_ID = AccountId.fromHex(faucetId);
     const accountId = Address.fromBech32(from).accountId();
-    const toAccountId = to.startsWith("0x")
-      ? AccountId.fromHex(to)
-      : Address.fromBech32(to).accountId();
-    const amountInBaseDenom = BigInt(amount) * BigInt(10 ** decimals);
+    const toAccountId = Address.fromBech32(to).accountId();
+    const amountInBaseDenom = BigInt(amount * 10 ** decimals);
     const noteAssets = new NoteAssets([
       new FungibleAsset(FAUCET_ID, amountInBaseDenom),
     ]);
@@ -81,7 +79,7 @@ export async function importNote(noteBytes: any, receiver: string) {
   const client = await WebClient.createClient(RPC_ENDPOINT);
   const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
   try {
-    console.log("Importing private note for receiver:", receiver);
+    console.log("Importing note for receiver:", receiver);
     const p2idNote = Note.deserialize(noteBytes);
     const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
 
@@ -112,7 +110,7 @@ export async function importNote(noteBytes: any, receiver: string) {
 
 export async function sendToMany(
   sender: string,
-  receipients: { to: string; amount: bigint; faucet: FaucetInfo }[],
+  receipients: { to: string; amount: number; faucet: FaucetInfo }[],
   delegate: boolean = true,
 ) {
   const {
@@ -134,10 +132,8 @@ export async function sendToMany(
     const senderAccountId = Address.fromBech32(sender).accountId();
     const notes = new OutputNotesArray(
       receipients.map(({ to, amount, faucet }) => {
-        const amountInBaseDenom = amount * BigInt(10 ** faucet.decimals);
-        const toAccountId = to.startsWith("0x")
-          ? AccountId.fromHex(to)
-          : Address.fromBech32(to).accountId();
+        const amountInBaseDenom = BigInt(amount * 10 ** faucet.decimals);
+        const toAccountId = Address.fromBech32(to).accountId();
         const faucetId = AccountId.fromHex(faucet.address);
         const noteAssets = new NoteAssets([
           new FungibleAsset(faucetId, amountInBaseDenom),
