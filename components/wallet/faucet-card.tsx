@@ -27,12 +27,15 @@ export function Faucet({ onClose }: { onClose: () => void }) {
     }
   };
   return (
-    <div className="w-full">
-      <Card className="bg-card border-border ring-1 ring-primary/10">
-        <CardContent className="space-y-3 p-4 pt-0">
+    <div className="w-full font-geist">
+      <Card className="rounded-[5px] py-0 border gap-4">
+        <CardHeader className="bg-[#F9F9F9] py-[7px] border-b-[0.5px] flex items-center justify-center">
+          <div className="text-center text-sm font-medium">Faucet</div>
+        </CardHeader>
+        <CardContent className="space-y-3 pb-4 pt-0">
           <div className="flex flex-col gap-2">
-            <div className="flex gap-2 mb-2 items-center justify-between px-2">
-              <label className="text-md font-medium text-foreground">
+            <div className="flex gap-2 items-center justify-between">
+              <label className="text-sm font-medium text-foreground">
                 Amount
               </label>
               <div className="flex gap-2">
@@ -40,13 +43,12 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                   <button
                     key={val}
                     className={
-                      "text-center px-2 py-1 text-xs border " +
+                      "text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border min-w-[34px] h-[17px] flex items-center " +
                       (amount === val.toString()
                         ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-neutral-400 dark:border-muted")
+                        : " border-neutral-400 dark:border-muted")
                     }
                     onClick={() => setAmount(val.toString())}
-                    style={{ minWidth: "32px", height: "24px" }}
                   >
                     {val}
                   </button>
@@ -65,7 +67,7 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                   setShowAlert(false);
                 }
               }}
-              className="text-base h-10"
+              className="text-base h-10 outline-none focus:ring-1 focus:outline-none"
             />
           </div>
 

@@ -19,6 +19,8 @@ import { FaucetInfo } from "@/store/balance";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
 import { sendToMany } from "@/lib/actions";
 import { sucessTxToast } from "../success-tsx-toast";
+import { useBalanceStore } from "@/providers/balance-provider";
+import { toast } from "sonner";
 
 interface DistributionRow {
   id: string;
@@ -45,6 +47,7 @@ export function OneToMany({
   const [rows, setRows] = useState<DistributionRow[]>([]);
   const [loading, setLoading] = useState(false);
   const account = useMidenSdkStore((state) => state.account);
+  const balances = useBalanceStore((state) => state.balances);
 
   useEffect(() => {
     if (receipient && amount) {
@@ -62,7 +65,7 @@ export function OneToMany({
 
   const addRow = () => {
     const newRow: DistributionRow = {
-      id: Date.now().toString(),
+      id: (rows.length + 1).toString(),
       address: "",
       amount: "",
       faucetId: selectedFaucetId,
@@ -90,15 +93,24 @@ export function OneToMany({
       setRows(rows.map((row) => (row.id === id ? { ...row, faucetId } : row)));
   };
 
+  const validateRow = (row: DistributionRow) => {
+    if (parseFloat(row.amount) < balances[row.faucetId.address]) {
+      toast.error(
+        `Insufficient balance for ${row.faucetId.symbol} in row ${row.id}`,
+      );
+    }
+  };
+
   const handleSubmit = async () => {
     if (!account) return;
     setLoading(true);
     try {
+      rows.forEach((row) => validateRow(row));
       const txResult = await sendToMany(
         account,
         rows.map((row) => ({
           to: row.address,
-          amount:parseFloat(row.amount),
+          amount: parseFloat(row.amount),
           faucet: row.faucetId,
         })),
       );

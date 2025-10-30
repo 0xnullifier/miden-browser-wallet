@@ -97,32 +97,23 @@ export const createBalanceStore = () =>
               position: "top-right",
             },
           );
-          console.time("finding noteids");
           const noteIds = consumableNotes.map((note: any) =>
             note.inputNoteRecord().id().toString(),
           );
-          console.timeEnd("finding noteids");
 
-          console.time("consuming notes tx");
           const consumeTxRequest =
             newClient.newConsumeTransactionRequest(noteIds);
           const txResult = await newClient.newTransaction(
             accountId,
             consumeTxRequest,
           );
-          console.timeEnd("consuming notes tx");
 
           const txId = txResult.executedTransaction().id().toHex();
           try {
-            console.time("submitting tx with prover");
             await newClient.submitTransaction(txResult, prover);
-            console.timeEnd("submitting tx with prover");
           } catch (e) {
-            console.log(e);
-            console.time("submitting tx without prover");
             // maybe a prover error, we retry once more
             await newClient.submitTransaction(txResult);
-            console.timeEnd("submitting tx without prover");
           }
           sucessTxToast(`Consumed ${noteIds.length} successfully`, txId);
         } catch (error) {

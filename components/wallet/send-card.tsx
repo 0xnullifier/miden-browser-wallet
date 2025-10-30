@@ -2,7 +2,7 @@
 
 import { Camera, Loader2, Copy, Check, Info, Download } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
+import { Card, CardContent, CardHeader } from "../ui/card";
 import { Input } from "../ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Switch } from "@/components/ui/switch";
@@ -106,7 +106,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         console.error("Error creating offer:", error);
         toast.error(
           "Failed to create WebRTC offer: " +
-            (error instanceof Error ? error.message : "Unknown error"),
+          (error instanceof Error ? error.message : "Unknown error"),
         );
         setLoading(false);
         setAmount("");
@@ -147,7 +147,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
       console.error("Error sending transaction:", error);
       toast.error(
         "Failed to send transaction: " +
-          (error instanceof Error ? error.message : "Unknown error"),
+        (error instanceof Error ? error.message : "Unknown error"),
       );
       setLoading(false);
       setAmount("");
@@ -465,30 +465,33 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   return (
     <div className="w-full">
-      <Card className="bg-card border-border ring-1 ring-primary/10">
-        <CardContent className="space-y-5">
+      <Card className="rounded-[5px] py-0 border gap-0">
+        <CardHeader className="bg-[#F9F9F9] py-[7px] border-b-[0.5px] flex items-center justify-center">
+          <div className="text-center text-sm font-medium">Send</div>
+        </CardHeader>
+        <CardContent className="px-0 gap-0">
           {/* Amount Field */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
               Amount
             </label>
-            <div className="flex gap-2 relative">
-              <Input
-                type="text"
-                inputMode="decimal"
-                pattern="^[0-9]*[.,]?[0-9]*$"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Allow only numbers and decimal point
-                  if (value === "" || /^\d*\.?\d*$/.test(value)) {
-                    setAmount(value);
-                  }
-                }}
-                className="text-base h-10 flex-1 pr-16"
-              />
-              <button
+            <div className="flex gap-2 relative"> */}
+          <Input
+            type="text"
+            inputMode="decimal"
+            pattern="^[0-9]*[.,]?[0-9]*$"
+            placeholder="$0"
+            value={amount}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Allow only numbers and decimal point
+              if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                setAmount(value);
+              }
+            }}
+            className="text-center text-[40px] h-[90px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#0000004F border-b-[0.5px]"
+          />
+          {/* <button
                 type="button"
                 className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white focus:outline-none"
                 onClick={() => setAmount(balance ? balance.toString() : "")}
@@ -497,75 +500,47 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
                 Max
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Recipient Field */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Recipient
-            </label>
-            <div className="flex gap-2">
+          <div className="flex items-center border-y-[0.5px] w-full">
+            <div className="text-base font-medium px-5 py-6  bg-[#F9F9F9]">
+              To
+            </div>
+            <div className="flex gap-2 w-full">
               <Input
-                placeholder="0x..."
-                value={recipient}
+                placeholder="mtst1qzv...5tfg"
+                value={ recipient.length >= 40 ? `${recipient.slice(0, 8)}...${recipient.slice(-6)}`: recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                className="font-mono text-sm h-10 flex-1"
+                className="text-base max-w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C"
               />
             </div>
           </div>
 
-          {/* Toggle Options */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="text-sm font-medium text-foreground">
-                  One to Many Payment
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Send to multiple recipients
-                </div>
-              </div>
-              <Switch checked={isOneToMany} onCheckedChange={setIsOneToMany} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="text-sm font-medium text-foreground">
-                  Private Payment
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Keep transaction details private
-                </div>
-              </div>
-              <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="terms"
-              checked={delegate}
-              onCheckedChange={() => setDelegate(!delegate)}
+            <OptionItem 
+              title="One to Many Payment"
+              subTitle="Send to multiple recipients"
+              value={isOneToMany}
+              onToggle={setIsOneToMany}
             />
-            <Label htmlFor="terms" className="text-xs">
-              Use Delegate Proving
-            </Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="w-3 h-3" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs text-xs text-wrap">
-                <p>
-                  Delegate proving allows you to outsource the zk proof
-                  generation of your transaction to a third party. Keeping it
-                  makes it easier for you to use the application, We recommend
-                  it especially on mobile!
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+            <OptionItem
+              title="Private Payment"
+              subTitle="Keep transaction details private"
+              value={isPrivate}
+              onToggle={setIsPrivate}
+            />
+            <OptionItem
+              title="Use Delegate Proving"
+              subTitle="Outsource proof generation"
+              value={delegate}
+              onToggle={setDelegate}
+            />
           {/* Send Button */}
-          <Button
-            className="w-full h-10 text-sm font-medium"
+         
+        </CardContent>
+      </Card>
+             <Button
+            className="w-full h-10 text-sm font-medium mt-4 rounded-[5px]"
             disabled={
               !amount ||
               !recipient ||
@@ -585,9 +560,6 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
               "Send Payment"
             )}
           </Button>
-        </CardContent>
-      </Card>
-
       {/* Retrying Connection Dialog */}
       <Dialog open={retryingDialog} onOpenChange={setRetryingDialog}>
         <DialogContent className="max-w-md">
@@ -690,4 +662,59 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
       />
     </div>
   );
+}
+
+
+export const OptionItem = ({
+  onToggle,
+  title,
+  subTitle,
+  value
+}: {
+  onToggle: (val: boolean) => void,
+  title: string,
+  subTitle: string,
+  value: boolean
+}) => {
+  return (
+    <div className="flex items-center justify-between font-geist border-y-[0.5px]">
+      <div className="space-y-1 pl-5">
+        <div className="text-sm font-medium text-foreground">
+          {title}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {subTitle}
+        </div>
+      </div>
+      <Switch2 value={value} onToggle={onToggle} />
+    </div>
+  )
+}
+
+const Switch2 = ({
+  value,
+  onToggle
+}: {
+  value: boolean,
+  onToggle: (val: boolean) => void
+}) => {
+  useEffect(() => {
+    if (typeof onToggle !== "undefined")
+    onToggle(value);
+  }, [value]);
+  if(value) {
+          return (
+          <div className="flex">
+        <div className="cursor-pointer text-primary w-[64px] h-[54px] text-sm bg-[#F9F9F9] border-x-[0.5px] flex items-center justify-center" onClick={() => onToggle(false)}>On</div>
+        <div className="w-[64px] h-[54px] bg-background"></div>
+            </div>
+          )
+  } else {
+    return (
+      <div className="flex">
+        <div className="w-[64px] h-[54px] border-l-[0.5px]"></div>
+        <div className="cursor-pointer text-primary text-sm w-[64px] h-[54px] flex items-center justify-center bg-[#F9F9F9] border-x-[0.5px]" onClick={() => onToggle(true)}>Off</div>
+      </div>
+    )
+  }
 }

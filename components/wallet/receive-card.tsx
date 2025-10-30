@@ -24,9 +24,12 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
   };
 
   return (
-    <div className="w-full">
-      <Card className="backdrop-blur-sm ring-1 ring-primary/10">
-        <CardContent className="space-y-6">
+    <div className="w-full font-geist">
+      <Card className="rounded-[5px] py-0 border gap-4">
+        <CardHeader className="bg-[#F9F9F9] py-[7px] border-b-[0.5px] flex items-center justify-center">
+          <div className="text-center text-sm font-medium">Receive</div>
+        </CardHeader>
+        <CardContent className="space-y-6 px-0">
           {/* QR Code */}
           <div className="flex justify-center ">
             <div className="p-4 bg-white border border-gray-200">
@@ -43,9 +46,9 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
           </div>
 
           {/* Address */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 p-3 border border-primary/20 bg-primary/10">
-              <code className="flex-1 text-sm font-mono break-all">
+          <div className="space-y-3 border-t-[0.5px] py-6 px-6">
+            <div className="flex items-center gap-1 justify-center">
+              <code className="flex-1 text-sm">
                 {walletAddress}
               </code>
               <Button
@@ -57,7 +60,7 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
                 {copied ? (
                   <Check className="h-4 w-4 text-green-400" />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4" color="#FF5500"/>
                 )}
               </Button>
             </div>

@@ -7,7 +7,7 @@ import { SendCard } from "@/components/wallet/send-card";
 import { ActivityCardList } from "@/components/wallet/activity-card";
 import { toShowType, WalletCard } from "@/components/wallet/wallet-card";
 import { Faucet } from "@/components/wallet/faucet-card";
-import { ReceiveCard } from "@/components/wallet/receve-card";
+import { ReceiveCard } from "@/components/wallet/receive-card";
 import { LoadingTimeoutDialog } from "@/components/ui/loading-timeout-dialog";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
 import { useLoadingTimeout } from "@/hooks/use-loading-timeout";
@@ -185,7 +185,7 @@ export default function WalletInterface() {
         transition={{ duration: 0.3 }}
       >
         <motion.div
-          className="w-[24rem] space-y-4"
+          className="w-[24rem] sm:w-[429px] space-y-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{
@@ -208,6 +208,7 @@ export default function WalletInterface() {
           >
             <WalletCard
               faucet={faucet}
+              toShow={toShow}
               setFaucet={setFaucet}
               setToShow={setToShow}
             />
@@ -262,7 +263,7 @@ function WalletActionCard({ children }: { children: React.ReactNode }) {
         mass: 0.8,
       }}
     >
-      <div className="w-[24rem]">{children}</div>
+      <div className="w-[24rem] sm:w-[429px]">{children}</div>
     </motion.div>
   );
 }

@@ -19,6 +19,7 @@ export type toShowType = "send" | "activity" | "receive" | "faucet";
 interface WalletCardProps {
   faucet: FaucetInfo;
   setFaucet: (faucet: FaucetInfo) => void;
+  toShow: toShowType;
   setToShow: (view: toShowType) => void;
 }
 
@@ -33,30 +34,35 @@ export function Balance({ faucet }: { faucet: FaucetInfo }) {
   );
 }
 
-const ACTIONS = [
+const ACTIONS = (type: toShowType) => [
   {
-    icon: <SendSvg />,
-    label: "SEND",
+    icon: <SendSvg active={type === "send"} />,
+    label: "Send",
     type: "send" as toShowType,
   },
   {
-    icon: <ActivtySvg />,
-    label: "ACTIVITY",
+    icon: <ActivtySvg active={type === "activity"} />,
+    label: "Activity",
     type: "activity" as toShowType,
   },
   {
-    icon: <ReceiveSvg />,
-    label: "RECEIVE",
+    icon: <ReceiveSvg active={type === "receive"} />,
+    label: "Receive",
     type: "receive" as toShowType,
   },
   {
-    icon: <FaucetSvg />,
-    label: "FAUCET",
+    icon: <FaucetSvg active={type === "faucet"} />,
+    label: "Faucet",
     type: "faucet" as toShowType,
   },
 ];
 
-export function WalletCard({ faucet, setFaucet, setToShow }: WalletCardProps) {
+export function WalletCard({
+  faucet,
+  setFaucet,
+  setToShow,
+  toShow,
+}: WalletCardProps) {
   const [copied, setCopied] = useState(false);
   const [address, setAddress] = useState<string>("");
   const account = useMidenSdkStore((state) => state.account);
@@ -68,7 +74,7 @@ export function WalletCard({ faucet, setFaucet, setToShow }: WalletCardProps) {
   return (
     <div>
       <div className="w-full h-8 bg-primary flex items-center justify-center">
-        <p className="text-white font-medium">MIDEN BROWSER WALLET</p>
+        <p className="text-white font-departureMono font-bold">MIDEN BROWSER WALLET</p>
       </div>
       <Card className="bg-card border-border ring-1 ring-primary/10 py-2 gap-0">
         <CardHeader className="border-b pb-0">
@@ -103,7 +109,7 @@ export function WalletCard({ faucet, setFaucet, setToShow }: WalletCardProps) {
           {/* Balance */}
           <Balance faucet={faucet} />
           <div className="flex justify-between gap-2 py-4 border-t px-6">
-            {ACTIONS.map((action) => (
+            {ACTIONS(toShow).map((action) => (
               <ActionButton
                 key={action.type}
                 icon={action.icon}
@@ -135,7 +141,7 @@ function ActionButton({
       <span onClick={() => setToShow(type)} className="cursor-pointer">
         {icon}
       </span>
-      <span className="text-xs">{label}</span>
+      <span className="text-sm font-geist">{label}</span>
     </div>
   );
 }

@@ -29,9 +29,6 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-
-    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-    --font-mono: "IBM Plex Mono", monospace;
   }
 
   .dark {
@@ -157,3 +154,11 @@
     --sidebar-ring: oklch(0.439 0 0);
   }
 }
+
+input:focus,
+textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+

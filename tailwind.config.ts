@@ -60,14 +60,16 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
       },
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
+        geist: ["var(--font-geist)", "sans-serif"],
+        departureMono: ["var(--font-departure-mono)", "monospace"],
+      },
       borderRadius: {
         lg: "0",
         md: "0",
         sm: "0",
-      },
-      fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["IBM Plex Mono", "monospace"],
       },
     },
   },

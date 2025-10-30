@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@demox-labs/miden-sdk':
-        specifier: 0.11.8
-        version: 0.11.8(chai@5.2.1)
+        specifier: 0.11.11
+        version: 0.11.11(chai@5.2.1)
       '@radix-ui/react-accordion':
         specifier: ^1.2.11
         version: 1.2.11(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -158,8 +158,8 @@ packages:
     resolution: {integrity: sha512-KHp2IflsnGywDjBWDkR9iEqiWSpc8GIi0lgTT3mOElT0PP1tG26P4tmFI2YvAdzgq9RGyoHZQEIEdZy6Ec5xCA==}
     engines: {node: '>=6.9.0'}
 
-  '@demox-labs/miden-sdk@0.11.8':
-    resolution: {integrity: sha512-tKb0OYAdKLEgNdhDzdOp0FAvItqoS9t4pc+mODdAgautOSbknCLLM7Jpk2X8TQnoU7sGdg2rLHCGNFrHQqTkGA==}
+  '@demox-labs/miden-sdk@0.11.11':
+    resolution: {integrity: sha512-HcKadGQQynW/UZrVLSAZsl3Luwt1d0Pmhkd/2MBbyJ0IoIN/tySsAx3f7XrmMSwX4RwUnM2tY5aeM/bf0V/ZEw==}
 
   '@emnapi/core@1.4.5':
     resolution: {integrity: sha512-XsLw1dEOpkSX/WucdqUhPWP7hDxSvZiY+fsUC14h+FtQ2Ifni4znbBt8punRX+Uj2JG/uDb8nEHVKvrVlvdZ5Q==}
@@ -2917,7 +2917,7 @@ snapshots:
 
   '@babel/runtime@7.28.2': {}
 
-  '@demox-labs/miden-sdk@0.11.8(chai@5.2.1)':
+  '@demox-labs/miden-sdk@0.11.11(chai@5.2.1)':
     dependencies:
       chai-as-promised: 8.0.1(chai@5.2.1)
       dexie: 4.0.11
