@@ -94,18 +94,27 @@ export function OneToMany({
   };
 
   const validateRow = (row: DistributionRow) => {
-    if (parseFloat(row.amount) < balances[row.faucetId.address]) {
+    if (parseFloat(row.amount) > balances[row.faucetId.address]) {
       toast.error(
         `Insufficient balance for ${row.faucetId.symbol} in row ${row.id}`,
+        {
+          position: "top-right"
+        }
       );
+      return false
     }
+    return true
   };
 
   const handleSubmit = async () => {
     if (!account) return;
     setLoading(true);
     try {
-      rows.forEach((row) => validateRow(row));
+      const validRows = rows.map((row) => validateRow(row)).reduce((prev, curr) => prev && curr, true);
+      if (!validRows) {
+        setLoading(false);
+        return;
+      }
       const txResult = await sendToMany(
         account,
         rows.map((row) => ({
