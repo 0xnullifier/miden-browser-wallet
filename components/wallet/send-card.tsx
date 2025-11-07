@@ -480,7 +480,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
             type="text"
             inputMode="decimal"
             pattern="^[0-9]*[.,]?[0-9]*$"
-            placeholder="$0"
+            placeholder={`0${selectedFaucet.symbol}`}
             value={amount}
             onChange={(e) => {
               const value = e.target.value;
@@ -508,11 +508,12 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
               To
             </div>
             <div className="flex gap-2 w-full">
-              <Input
-                placeholder="mtst1qzv...5tfg"
-                value={ recipient.length >= 40 ? `${recipient.slice(0, 8)}...${recipient.slice(-6)}`: recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                className="text-base max-w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C"
+              <textarea
+              placeholder="mtst1qzv...5tfg"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              rows={2}
+              className="text-base px-2 w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C resize-none"
               />
             </div>
           </div>
