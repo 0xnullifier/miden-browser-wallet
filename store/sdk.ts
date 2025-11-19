@@ -86,6 +86,7 @@ export const createMidenSdkStore = () =>
             error.toString().includes(ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12)
           ) {
             indexedDB.deleteDatabase("MidenClientDB");
+            localStorage.clear();
             window.location.reload();
             return;
           }

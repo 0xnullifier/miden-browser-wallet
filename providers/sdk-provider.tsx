@@ -42,7 +42,7 @@ export const useMidenSdkStore = <T,>(
   return useStore(midenSdkStoreContext, selector);
 };
 
-export const tickInterval = 2000; // 1 second
+export const tickInterval = 3000; // 3 second
 export function useInitAndPollSyncState() {
   const [tick, setTick] = useState(0);
   const syncState = useMidenSdkStore((state) => state.syncState);

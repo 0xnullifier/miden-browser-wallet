@@ -40,7 +40,7 @@ export const BECH32_PREFIX = "mdev";
 export const ERROR_THROWN_ON_VERSION_MISMATCH =
   "store error: error deserializing data from the store: unexpected EOF";
 export const ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12 =
-  "Failed to open database: Indexdb error (UpgradeError): Not yet support for changing primary key";
+  "Failed to initialize WebStore";
 export const GITHUB_FEEDBACK_URL =
   "https://github.com/0xnullifier/miden-browser-wallet/issues/new?template=feedback.md";
 export const NETWORK_ID = async () => {

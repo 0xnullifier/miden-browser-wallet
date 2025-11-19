@@ -128,10 +128,7 @@ export default function AddressComponent() {
           <div className="flex items-center gap-4">
             {/* SVG Avatar */}
             <div className="flex-shrink-0">
-              <div
-                className="w-16 h-16 rounded-full overflow-hidden border-2 border-border"
-                dangerouslySetInnerHTML={{ __html: svg }}
-              />
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border" />
             </div>
 
             {/* Address and Stats */}
