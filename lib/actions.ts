@@ -1,7 +1,7 @@
-import { toast } from "sonner";
-import { RPC_ENDPOINT, TX_PROVER_ENDPOINT } from "./constants";
+import { RPC_ENDPOINT } from "./constants";
 import { sucessTxToast } from "@/components/success-tsx-toast";
 import { FaucetInfo } from "@/store/balance";
+import { submitTransactionWithRetry } from "./helper";
 
 export async function send(
   client: any,
@@ -19,13 +19,12 @@ export async function send(
     AccountId,
     Address,
     NoteType,
-    TransactionProver,
     Note,
     NoteAssets,
     FungibleAsset,
     Felt,
     TransactionRequestBuilder,
-    OutputNotesArray,
+    MidenArrays,
     OutputNote,
   } = await import("@demox-labs/miden-sdk");
   if (client instanceof WebClient) {
@@ -44,31 +43,31 @@ export async function send(
       noteType,
       new Felt(BigInt(0)),
     );
+    console.log("p2id note", p2idNote.id().toString());
+    console.log("p2id note", p2idNote.assets().fungibleAssets()[0].amount());
     const outputP2ID = OutputNote.full(p2idNote);
     let sendTxRequest = new TransactionRequestBuilder()
-      .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
+      .withOwnOutputNotes(new MidenArrays.OutputNoteArray([outputP2ID]))
       .build();
-    let txResult = await client.newTransaction(accountId, sendTxRequest);
-    try {
-      const prover = delegate
-        ? TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT)
-        : null;
-      await client.submitTransaction(txResult, prover);
-    } catch (error) {
-      if (
-        error.toString().includes("failed to submit transaction with prover")
-      ) {
-        toast.info("Remote proving failed, proving locally...");
-        await client.submitTransaction(txResult);
-      }
-    }
+    console.log(
+      sendTxRequest
+        .expectedOutputOwnNotes()[0]
+        .assets()
+        .fungibleAssets()[0]
+        .amount(),
+    );
+    let txResult = await submitTransactionWithRetry(
+      sendTxRequest,
+      client,
+      accountId,
+      delegate,
+    );
     return { tx: txResult, note: p2idNote };
   }
 }
 
 export async function importNote(noteBytes: any, receiver: string) {
   const {
-    TransactionProver,
     WebClient,
     Address,
     Note,
@@ -77,7 +76,6 @@ export async function importNote(noteBytes: any, receiver: string) {
     TransactionRequestBuilder,
   } = await import("@demox-labs/miden-sdk");
   const client = await WebClient.createClient(RPC_ENDPOINT);
-  const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
   try {
     console.log("Importing note for receiver:", receiver);
     const p2idNote = Note.deserialize(noteBytes);
@@ -87,20 +85,34 @@ export async function importNote(noteBytes: any, receiver: string) {
       .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
       .build();
 
-    const txExecutionResult = await client.newTransaction(
-      Address.fromBech32(receiver).accountId(),
+    const digest = await submitTransactionWithRetry(
       consumeRequest,
+      client,
+      Address.fromBech32(receiver).accountId(),
     );
-    const digest = txExecutionResult.executedTransaction().id().toHex();
-    try {
-      await client.submitTransaction(txExecutionResult, prover);
-    } catch (e) {
-      console.log(e);
-      if (e.toString().includes("failed to submit transaction with prover")) {
-        await client.submitTransaction(txExecutionResult);
-      }
-    }
     sucessTxToast("Received note successfully 🚀", digest);
+  } catch (error) {
+    console.error("Error importing private note:", error);
+  } finally {
+    client.terminate();
+  }
+}
+
+export async function importNoteFile(noteBytes: any) {
+  const { NoteFile, WebClient } = await import("@demox-labs/miden-sdk");
+  const client = await WebClient.createClient(RPC_ENDPOINT);
+  try {
+    const prevCount = (await client.getConsumableNotes()).length;
+    let afterCount = prevCount;
+    let retryNumber = 0;
+    // somtimes the import is failed due to the note not being ready yet, so we retry until the note is imported
+    while (afterCount !== prevCount + 1 && retryNumber < 5) {
+      await client.importNoteFile(NoteFile.deserialize(noteBytes));
+      afterCount = (await client.getConsumableNotes()).length;
+      console.log("Trying to import, number:", retryNumber);
+      retryNumber += 1;
+    }
+    console.log(afterCount);
   } catch (error) {
     console.error("Error importing private note:", error);
   } finally {
@@ -123,14 +135,14 @@ export async function sendToMany(
     NoteType,
     Felt,
     OutputNote,
-    OutputNotesArray,
+    MidenArrays,
     TransactionRequestBuilder,
     TransactionProver,
   } = await import("@demox-labs/miden-sdk");
   const client = await WebClient.createClient(RPC_ENDPOINT);
   try {
     const senderAccountId = Address.fromBech32(sender).accountId();
-    const notes = new OutputNotesArray(
+    const notes = new MidenArrays.OutputNoteArray(
       receipients.map(({ to, amount, faucet }) => {
         const amountInBaseDenom = BigInt(amount * 10 ** faucet.decimals);
         const toAccountId = Address.fromBech32(to).accountId();
@@ -151,12 +163,12 @@ export async function sendToMany(
     const txRequest = new TransactionRequestBuilder()
       .withOwnOutputNotes(notes)
       .build();
-    const txResult = await client.newTransaction(senderAccountId, txRequest);
-    const prover = delegate
-      ? TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT)
-      : null;
-    await client.submitTransaction(txResult, prover);
-    return txResult;
+    const txId = await submitTransactionWithRetry(
+      txRequest,
+      client,
+      senderAccountId,
+    );
+    return txId;
   } catch (error) {
     console.error("Error sending to many:", error);
     throw new Error(

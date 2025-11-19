@@ -1,6 +1,6 @@
 "use client";
 
-import { importNote } from "@/lib/actions";
+import { importNote, importNoteFile } from "@/lib/actions";
 import { WEBSOCKET_URL } from "@/lib/constants";
 import {
   MESSAGE_TYPE,
@@ -240,12 +240,18 @@ const handleDataChannelMessage = async (
         //TODO: added this above importing the note because importing note sometimes takes too long and the dc is closed by then
         // ideally we should keep the dc open until the note is imported successfully or fails
         // but for now this will do. until the remote prover situation is fixed.
-        dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
         toast.promise(importNote(message.bytes, message.receiver), {
           position: "top-right",
           loading: "Importing note...",
-          success: "Note imported successfully!",
-          error: "Failed to import private note",
+          success: () => {
+            dc.send(JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECEIVED_ACK }));
+            toggleReset();
+            return "Note imported successfully!";
+          },
+          error: () => {
+            console.log("failed");
+            return "Unauthnotes failed demading note bytes";
+          },
         });
         setStage("noteReceived");
       } catch (error) {
@@ -254,8 +260,6 @@ const handleDataChannelMessage = async (
           JSON.stringify({ type: MESSAGE_TYPE.NOTE_RECIEVED_BUT_IMPORT_ERROR }),
         );
         toast.error("Failed to process private note bytes");
-      } finally {
-        toggleReset();
       }
       break;
     case MESSAGE_TYPE.NOTE_RECEIVED_ACK:

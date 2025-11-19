@@ -1,14 +1,12 @@
 import {
   ADD_ADDRESS_API,
-  BECH32_PREFIX,
   ERROR_THROWN_ON_VERSION_MISMATCH,
-  FAUCET_ID,
+  ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12,
   MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
+  NETWORK_ID,
   RPC_ENDPOINT,
 } from "@/lib/constants";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
@@ -77,14 +75,21 @@ export const createMidenSdkStore = () =>
             state.isLoading = false;
           });
         } catch (error) {
+          console.error("Miden SDK initialization error:", error);
           // client was on previous version, clear indexedDB and reload
           if (error.toString().includes(ERROR_THROWN_ON_VERSION_MISMATCH)) {
             indexedDB.deleteDatabase("MidenClientDB");
             window.location.reload();
             return;
           }
+          if (
+            error.toString().includes(ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12)
+          ) {
+            indexedDB.deleteDatabase("MidenClientDB");
+            window.location.reload();
+            return;
+          }
 
-          console.error("Miden SDK initialization error:", error);
           set((state) => {
             state.error =
               error instanceof Error
@@ -119,14 +124,8 @@ export const createMidenSdkStore = () =>
       initializeAccount: async (client: any) => {
         const { setAccount, error } = get();
 
-        const {
-          AccountStorageMode,
-          NetworkId,
-          WebClient,
-          Address,
-          AccountId,
-          AccountInterface,
-        } = await import("@demox-labs/miden-sdk");
+        const { AccountStorageMode, WebClient, AccountInterface, Address } =
+          await import("@demox-labs/miden-sdk");
         if (!(client instanceof WebClient)) {
           throw new Error("Miden SDK client not initialized");
         }
@@ -136,14 +135,6 @@ export const createMidenSdkStore = () =>
         if (accountID) {
           try {
             setAccount(accountID);
-            const account = await client.getAccount(
-              Address.fromBech32(accountID).accountId(),
-            );
-            const ids = account
-              .vault()
-              .fungibleAssets()
-              .map((asset) => asset.faucetId());
-
             return;
           } catch (error) {
             console.error("Failed to deserialize saved account:", error);
@@ -169,11 +160,13 @@ export const createMidenSdkStore = () =>
         } else {
           const newAccount = await client.newWallet(
             AccountStorageMode.private(),
-            true,
+            false,
+            0,
           );
+          const NID = await NETWORK_ID();
           const newAccountId = newAccount
             .id()
-            .toBech32(NetworkId.Testnet, AccountInterface.Unspecified);
+            .toBech32(NID, AccountInterface.BasicWallet);
           setAccount(newAccountId);
           localStorage.setItem(
             MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
@@ -189,9 +182,10 @@ export const createMidenSdkStore = () =>
       },
 
       createNewAccount: async () => {
-        const { WebClient, AccountStorageMode, NetworkId } = await import(
+        const { WebClient, AccountStorageMode } = await import(
           "@demox-labs/miden-sdk"
         );
+        const NID = await NETWORK_ID();
         const client = await WebClient.createClient(RPC_ENDPOINT);
         const { setAccount } = get();
         if (!client) {
@@ -201,9 +195,10 @@ export const createMidenSdkStore = () =>
         }
         const newAccount = await client.newWallet(
           AccountStorageMode.private(),
-          true,
+          false,
+          0,
         );
-        setAccount(newAccount.id().toBech32(NetworkId.Testnet, 0));
+        setAccount(newAccount.id().toBech32(NID, 0));
         localStorage.setItem(
           MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
           newAccount.serialize().toString(),

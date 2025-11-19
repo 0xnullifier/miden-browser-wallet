@@ -15,7 +15,7 @@ import {
 import { cn, numToString } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DECIMALS, RPC_ENDPOINT } from "@/lib/constants";
+import { DECIMALS, NETWORK_ID, RPC_ENDPOINT } from "@/lib/constants";
 import { UITransaction } from "@/store/transaction";
 
 function formatAmount(
@@ -163,19 +163,15 @@ export function ActivityCardList() {
 
     const fetchTransactions = async () => {
       try {
-        const {
-          TransactionFilter,
-          NoteFilter,
-          NoteFilterTypes,
-          WebClient,
-          NetworkId,
-        } = await import("@demox-labs/miden-sdk");
+        const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } =
+          await import("@demox-labs/miden-sdk");
         if (clientRef.current instanceof WebClient) {
           const allTransactions = await clientRef.current.getTransactions(
             TransactionFilter.all(),
           );
+          const Nid = await NETWORK_ID();
           const transactionRecords = allTransactions.filter(
-            (tx) => tx.accountId().toBech32(NetworkId.Testnet, 0) === account,
+            (tx) => tx.accountId().toBech32(Nid, 0) === account,
           );
           const inputNotes = await clientRef.current.getInputNotes(
             new NoteFilter(NoteFilterTypes.All),

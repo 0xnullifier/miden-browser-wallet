@@ -1,5 +1,4 @@
 /// the transaction store
-
 import { FAUCET_ID } from "@/lib/constants";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";

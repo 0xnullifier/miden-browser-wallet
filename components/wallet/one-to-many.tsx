@@ -98,24 +98,26 @@ export function OneToMany({
       toast.error(
         `Insufficient balance for ${row.faucetId.symbol} in row ${row.id}`,
         {
-          position: "top-right"
-        }
+          position: "top-right",
+        },
       );
-      return false
+      return false;
     }
-    return true
+    return true;
   };
 
   const handleSubmit = async () => {
     if (!account) return;
     setLoading(true);
     try {
-      const validRows = rows.map((row) => validateRow(row)).reduce((prev, curr) => prev && curr, true);
+      const validRows = rows
+        .map((row) => validateRow(row))
+        .reduce((prev, curr) => prev && curr, true);
       if (!validRows) {
         setLoading(false);
         return;
       }
-      const txResult = await sendToMany(
+      const txId = await sendToMany(
         account,
         rows.map((row) => ({
           to: row.address,
@@ -123,10 +125,7 @@ export function OneToMany({
           faucet: row.faucetId,
         })),
       );
-      sucessTxToast(
-        "One to many payment sent successfully 🚀",
-        txResult.executedTransaction().id().toHex(),
-      );
+      sucessTxToast("One to many payment sent successfully 🚀", txId);
     } catch (error) {
       console.error("Error sending payment:", error);
     } finally {

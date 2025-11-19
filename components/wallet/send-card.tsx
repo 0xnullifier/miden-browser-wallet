@@ -1,11 +1,10 @@
 "use client";
 
-import { Camera, Loader2, Copy, Check, Info, Download } from "lucide-react";
+import { Loader2, Copy, Check, Download } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Input } from "../ui/input";
 import { useEffect, useRef, useState } from "react";
-import { Switch } from "@/components/ui/switch";
 import { send } from "@/lib/actions";
 import { sucessTxToast } from "@/components/success-tsx-toast";
 import {
@@ -29,21 +28,7 @@ import { useReceiverRef } from "@/providers/receiver-provider";
 import { MESSAGE_TYPE, WEBRTC_MESSAGE_TYPE } from "@/lib/types";
 import { toast } from "sonner";
 import { OneToMany } from "./one-to-many";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@radix-ui/react-label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { FaucetInfo } from "@/store/balance";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown";
-import { ChevronDown } from "lucide-react";
 
 // Send Card Component
 export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
@@ -55,7 +40,6 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const [base64NoteStr, setBase64NoteStr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [note, setNote] = useState<any | null>(null);
-
   const account = useMidenSdkStore((state) => state.account);
   const balances = useBalanceStore((state) => state.balances);
   const balance = balances[selectedFaucet.address];
@@ -106,7 +90,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         console.error("Error creating offer:", error);
         toast.error(
           "Failed to create WebRTC offer: " +
-          (error instanceof Error ? error.message : "Unknown error"),
+            (error instanceof Error ? error.message : "Unknown error"),
         );
         setLoading(false);
         setAmount("");
@@ -137,17 +121,14 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         delegate,
       );
       setNote(note);
-      sucessTxToast(
-        "Transaction sent successfully",
-        tx.executedTransaction().id().toHex(),
-      );
+      sucessTxToast("Transaction sent successfully", tx);
       setNoteBytes(Array.from(note.serialize()));
       setTx(tx);
     } catch (error) {
       console.error("Error sending transaction:", error);
       toast.error(
         "Failed to send transaction: " +
-        (error instanceof Error ? error.message : "Unknown error"),
+          (error instanceof Error ? error.message : "Unknown error"),
       );
       setLoading(false);
       setAmount("");
@@ -161,6 +142,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   };
 
   const processOfflineTransaction = async () => {
+    console.log("here");
     try {
       const { tx } = await send(
         clientRef.current,
@@ -172,10 +154,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         decimals,
         delegate,
       );
-      sucessTxToast(
-        "Transaction sent successfully",
-        tx.executedTransaction().id().toHex(),
-      );
+      sucessTxToast("Transaction sent successfully", tx);
     } catch (error) {
       console.error("Error sending transaction:", error);
       toast.error(
@@ -362,8 +341,6 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         position: "top-right",
       });
       setStage("webrtcStarted");
-    } else {
-      console.log("Sending public note transaction directly...");
     }
 
     await createOffer();
@@ -378,6 +355,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
       console.error("Failed to copy to clipboard:", error);
     }
   };
+
   const [downloadLoading, setDownloadLoading] = useState(false);
   const downloadNote = async () => {
     setDownloadLoading(true);
@@ -386,10 +364,9 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
     const client = await WebClient.createClient(RPC_ENDPOINT);
     try {
       await new Promise((resolve) => setTimeout(resolve, 10000));
-      const noteBytes = await client.exportNoteFile(
-        note.id().toString(),
-        "Full",
-      );
+      const noteBytes = (
+        await client.exportNoteFile(note.id().toString(), "Full")
+      ).serialize();
 
       const uint8Array = new Uint8Array(noteBytes);
 
@@ -509,58 +486,57 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
             </div>
             <div className="flex gap-2 w-full">
               <textarea
-              placeholder="mtst1qzv...5tfg"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-              rows={2}
-              className="text-base px-2 w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C resize-none"
+                placeholder="mtst1qzv...5tfg"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                rows={2}
+                className="text-base px-2 w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C resize-none"
               />
             </div>
           </div>
 
-            <OptionItem 
-              title="One to Many Payment"
-              subTitle="Send to multiple recipients"
-              value={isOneToMany}
-              onToggle={setIsOneToMany}
-            />
-            <OptionItem
-              title="Private Payment"
-              subTitle="Keep transaction details private"
-              value={isPrivate}
-              onToggle={setIsPrivate}
-            />
-            <OptionItem
-              title="Use Delegate Proving"
-              subTitle="Outsource proof generation"
-              value={delegate}
-              onToggle={setDelegate}
-            />
+          <OptionItem
+            title="One to Many Payment"
+            subTitle="Send to multiple recipients"
+            value={isOneToMany}
+            onToggle={setIsOneToMany}
+          />
+          <OptionItem
+            title="Private Payment"
+            subTitle="Keep transaction details private"
+            value={isPrivate}
+            onToggle={setIsPrivate}
+          />
+          <OptionItem
+            title="Use Delegate Proving"
+            subTitle="Outsource proof generation"
+            value={delegate}
+            onToggle={setDelegate}
+          />
           {/* Send Button */}
-         
         </CardContent>
       </Card>
-             <Button
-            className="w-full h-10 text-sm font-medium mt-4 rounded-[5px]"
-            disabled={
-              !amount ||
-              !recipient ||
-              loading ||
-              isNaN(Number(amount)) ||
-              Number(amount) <= 0 ||
-              Number(amount) > balance
-            }
-            onClick={onSend}
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Sending...
-              </div>
-            ) : (
-              "Send Payment"
-            )}
-          </Button>
+      <Button
+        className="w-full h-10 text-sm font-medium mt-4 rounded-[5px]"
+        disabled={
+          !amount ||
+          !recipient ||
+          loading ||
+          isNaN(Number(amount)) ||
+          Number(amount) <= 0 ||
+          Number(amount) > balance
+        }
+        onClick={onSend}
+      >
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Sending...
+          </div>
+        ) : (
+          "Send Payment"
+        )}
+      </Button>
       {/* Retrying Connection Dialog */}
       <Dialog open={retryingDialog} onOpenChange={setRetryingDialog}>
         <DialogContent className="max-w-md">
@@ -665,57 +641,61 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   );
 }
 
-
 export const OptionItem = ({
   onToggle,
   title,
   subTitle,
-  value
+  value,
 }: {
-  onToggle: (val: boolean) => void,
-  title: string,
-  subTitle: string,
-  value: boolean
+  onToggle: (val: boolean) => void;
+  title: string;
+  subTitle: string;
+  value: boolean;
 }) => {
   return (
     <div className="flex items-center justify-between font-geist border-y-[0.5px]">
       <div className="space-y-1 pl-5">
-        <div className="text-sm font-medium text-foreground">
-          {title}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {subTitle}
-        </div>
+        <div className="text-sm font-medium text-foreground">{title}</div>
+        <div className="text-xs text-muted-foreground">{subTitle}</div>
       </div>
       <Switch2 value={value} onToggle={onToggle} />
     </div>
-  )
-}
+  );
+};
 
 const Switch2 = ({
   value,
-  onToggle
+  onToggle,
 }: {
-  value: boolean,
-  onToggle: (val: boolean) => void
+  value: boolean;
+  onToggle: (val: boolean) => void;
 }) => {
   useEffect(() => {
-    if (typeof onToggle !== "undefined")
-    onToggle(value);
+    if (typeof onToggle !== "undefined") onToggle(value);
   }, [value]);
-  if(value) {
-          return (
-          <div className="flex">
-        <div className="cursor-pointer text-primary w-[64px] h-[54px] text-sm bg-[#F9F9F9] border-x-[0.5px] flex items-center justify-center" onClick={() => onToggle(false)}>On</div>
+  if (value) {
+    return (
+      <div className="flex">
+        <div
+          className="cursor-pointer text-primary w-[64px] h-[54px] text-sm bg-[#F9F9F9] border-x-[0.5px] flex items-center justify-center"
+          onClick={() => onToggle(false)}
+        >
+          On
+        </div>
         <div className="w-[64px] h-[54px] bg-background"></div>
-            </div>
-          )
+      </div>
+    );
   } else {
     return (
       <div className="flex">
         <div className="w-[64px] h-[54px] border-l-[0.5px]"></div>
-        <div className="cursor-pointer text-primary text-sm w-[64px] h-[54px] flex items-center justify-center bg-[#F9F9F9] border-x-[0.5px]" onClick={() => onToggle(true)}>Off</div>
+        <div
+          className="cursor-pointer text-primary text-sm w-[64px] h-[54px] flex items-center justify-center bg-[#F9F9F9] border-x-[0.5px]"
+          onClick={() => onToggle(true)}
+        >
+          Off
+        </div>
       </div>
-    )
+    );
   }
-}
+};

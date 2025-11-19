@@ -1,6 +1,4 @@
-import { WEBSOCKET_URL } from "@/lib/constants";
 import { SendPrivateNoteStages } from "@/lib/types";
-import { toast } from "sonner";
 import { create } from "zustand";
 
 interface WebRtcState {

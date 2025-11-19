@@ -9,6 +9,7 @@ import axios from "axios";
 import { create } from "zustand";
 import { sucessTxToast } from "@/components/success-tsx-toast";
 import { toast } from "sonner";
+import { submitTransactionWithRetry } from "@/lib/helper";
 
 export interface FaucetInfo {
   symbol: string;
@@ -42,86 +43,81 @@ export const createBalanceStore = () =>
       },
     ],
     loadBalance: async (client, _accountId) => {
-      const { Address } = await import("@demox-labs/miden-sdk");
-      const address = Address.fromBech32(_accountId);
-      const accountId = address.accountId();
-      const { faucets, consumingLoading } = get();
-      set({ loading: true });
-      const accountRecord = await client.getAccount(accountId);
-      if (!accountRecord) {
-        set({ loading: false, balances: {} });
-        throw new Error("Account Record not found");
-      }
-      const balances = {} as { [key: string]: number };
-      await Promise.all(
-        accountRecord
-          .vault()
-          .fungibleAssets()
-          .map(async (asset) => {
-            let tokenInfo = faucets.find(
-              (faucet) => faucet.address === asset.faucetId().toString(),
-            );
-            if (!tokenInfo) {
-              tokenInfo = await getTokenInfo(asset.faucetId().toString());
-              set((state) => ({
-                faucets: [...state.faucets, tokenInfo],
-              }));
-            }
-            const balanceInBaseDenom = asset.amount();
-            const balance =
-              Number(balanceInBaseDenom) / 10 ** tokenInfo.decimals;
-            balances[asset.faucetId().toString()] = balance;
-          }),
-      );
-      if (balances[FAUCET_ID] === undefined) {
-        balances[FAUCET_ID] = 0;
-      }
-      set({ loading: false, balances });
-
-      const consumableNotes = await client.getConsumableNotes();
-      if (consumableNotes.length === 0) {
-        console.info("No pending balance to consume");
-        return;
-      } else if (!consumingLoading) {
-        set({ consumingLoading: true });
-        // if consumable notes are found we consume them but terminate the client after consuming
-        const { WebClient, TransactionProver } = await import(
-          "@demox-labs/miden-sdk"
+      const { Address, WebClient } = await import("@demox-labs/miden-sdk");
+      if (client instanceof WebClient) {
+        const address = Address.fromBech32(_accountId);
+        const accountId = address.accountId();
+        const { faucets, consumingLoading } = get();
+        set({ loading: true });
+        const accountRecord = await client.getAccount(accountId);
+        if (!accountRecord) {
+          set({ loading: false, balances: {} });
+          throw new Error("Account Record not found");
+        }
+        const balances = {} as { [key: string]: number };
+        await Promise.all(
+          accountRecord
+            .vault()
+            .fungibleAssets()
+            .map(async (asset) => {
+              let tokenInfo = faucets.find(
+                (faucet) => faucet.address === asset.faucetId().toString(),
+              );
+              if (!tokenInfo) {
+                tokenInfo = await getTokenInfo(asset.faucetId().toString());
+                set((state) => ({
+                  faucets: [...state.faucets, tokenInfo],
+                }));
+              }
+              const balanceInBaseDenom = asset.amount();
+              const balance =
+                Number(balanceInBaseDenom) / 10 ** tokenInfo.decimals;
+              balances[asset.faucetId().toString()] = balance;
+            }),
         );
-        const newClient = await WebClient.createClient(RPC_ENDPOINT);
-        const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
-        try {
-          toast.info(
-            `Found ${consumableNotes.length} pending notes to consume, consuming...`,
-            {
-              position: "top-right",
-            },
-          );
-          const noteIds = consumableNotes.map((note: any) =>
-            note.inputNoteRecord().id().toString(),
-          );
+        if (balances[FAUCET_ID] === undefined) {
+          balances[FAUCET_ID] = 0;
+        }
+        set({ loading: false, balances });
 
-          const consumeTxRequest =
-            newClient.newConsumeTransactionRequest(noteIds);
-          const txResult = await newClient.newTransaction(
-            accountId,
-            consumeTxRequest,
+        const consumableNotes = await client.getConsumableNotes();
+        if (consumableNotes.length === 0) {
+          console.info("No pending balance to consume");
+          return;
+        } else if (!consumingLoading) {
+          set({ consumingLoading: true });
+          // if consumable notes are found we consume them but terminate the client after consuming
+          const { WebClient, TransactionProver } = await import(
+            "@demox-labs/miden-sdk"
           );
-
-          const txId = txResult.executedTransaction().id().toHex();
+          const newClient = await WebClient.createClient(RPC_ENDPOINT);
+          const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
           try {
-            await newClient.submitTransaction(txResult, prover);
-          } catch (e) {
-            // maybe a prover error, we retry once more
-            await newClient.submitTransaction(txResult);
+            toast.info(
+              `Found ${consumableNotes.length} pending notes to consume, consuming...`,
+              {
+                position: "top-right",
+              },
+            );
+            const noteIds = consumableNotes.map((note: any) =>
+              note.inputNoteRecord().id().toString(),
+            );
+
+            const consumeTxRequest =
+              newClient.newConsumeTransactionRequest(noteIds);
+            const txId = await submitTransactionWithRetry(
+              consumeTxRequest,
+              newClient,
+              accountId,
+            );
+            sucessTxToast(`Consumed ${noteIds.length} successfully`, txId);
+          } catch (error) {
+            console.error("Error consuming notes:", error);
+          } finally {
+            console.log("Terminating client after consuming pending notes");
+            set({ consumingLoading: false });
+            newClient.terminate();
           }
-          sucessTxToast(`Consumed ${noteIds.length} successfully`, txId);
-        } catch (error) {
-          console.error("Error consuming notes:", error);
-        } finally {
-          console.log("Terminating client after consuming pending notes");
-          set({ consumingLoading: false });
-          newClient.terminate();
         }
       }
     },
@@ -129,11 +125,15 @@ export const createBalanceStore = () =>
     faucet: async (accountId, amount) => {
       set({ faucetLoading: true });
       try {
+        const { AccountId, Address } = await import("@demox-labs/miden-sdk");
         const amountInBaseDenom = BigInt(
           Math.trunc(Number(amount) * 10 ** DECIMALS),
         );
+        const accountIdHex = Address.fromBech32(accountId)
+          .accountId()
+          .toString();
         const txId = await axios.get(
-          FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()),
+          FAUCET_API_ENDPOINT(accountIdHex, amountInBaseDenom.toString()),
         );
         sucessTxToast(
           "Faucet used successfully",

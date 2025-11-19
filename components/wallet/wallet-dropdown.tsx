@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown";
 import {
   MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
+  NETWORK_ID,
   RPC_ENDPOINT,
 } from "@/lib/constants";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
@@ -63,9 +64,9 @@ export function WalletDropdown() {
 
     try {
       // returns a array of bytes
-      const exportAccount = await client.exportAccountFile(
-        Address.fromBech32(account).accountId(),
-      );
+      const exportAccount = (
+        await client.exportAccountFile(Address.fromBech32(account).accountId())
+      ).serialize();
       const base64String = btoa(String.fromCharCode(...exportAccount));
       const fullString = `${base64String}:${account}`;
       await navigator.clipboard.writeText(fullString);
@@ -96,7 +97,7 @@ export function WalletDropdown() {
   };
 
   const importAccount = async () => {
-    const { WebClient, Address, NetworkId, AccountInterface } = await import(
+    const { WebClient, Address, AccountInterface, AccountFile } = await import(
       "@demox-labs/miden-sdk"
     );
     const client = await WebClient.createClient(RPC_ENDPOINT);
@@ -117,16 +118,17 @@ export function WalletDropdown() {
       const byteArray = Uint8Array.from(atob(b64AccountString), (c) =>
         c.charCodeAt(0),
       );
-      await client.importAccountFile(byteArray);
+      await client.importAccountFile(AccountFile.deserialize(byteArray));
       const account = await client.getAccount(
         Address.fromBech32(newAccountId).accountId(),
       );
       if (!account) {
         throw new Error("Imported account not found after import");
       }
+      const NID = await NETWORK_ID();
       localStorage.setItem(
         MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
-        account.id().toBech32(NetworkId.Testnet, AccountInterface.Unspecified),
+        account.id().toBech32(NID, AccountInterface.BasicWallet),
       );
       toast.success("Account imported successfully!", {
         position: "top-right",
