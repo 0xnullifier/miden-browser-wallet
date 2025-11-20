@@ -47,3 +47,4 @@ export const NETWORK_ID = async () => {
   const { NetworkId } = await import("@demox-labs/miden-sdk");
   return devnet ? NetworkId.Devnet : NetworkId.Testnet;
 };
+export const PRIVATE_NOTE_TRANSPORT_URL = "http://transport.miden.io:57292/";

@@ -45,6 +45,7 @@ export const createBalanceStore = () =>
     loadBalance: async (client, _accountId) => {
       const { Address, WebClient } = await import("@demox-labs/miden-sdk");
       if (client instanceof WebClient) {
+        console.log(_accountId);
         const address = Address.fromBech32(_accountId);
         const accountId = address.accountId();
         const { faucets, consumingLoading } = get();
@@ -63,6 +64,7 @@ export const createBalanceStore = () =>
               let tokenInfo = faucets.find(
                 (faucet) => faucet.address === asset.faucetId().toString(),
               );
+              console.log(asset);
               if (!tokenInfo) {
                 tokenInfo = await getTokenInfo(asset.faucetId().toString());
                 set((state) => ({
@@ -79,8 +81,9 @@ export const createBalanceStore = () =>
           balances[FAUCET_ID] = 0;
         }
         set({ loading: false, balances });
-
+        await client.fetchPrivateNotes();
         const consumableNotes = await client.getConsumableNotes();
+        console.log(consumableNotes.length);
         if (consumableNotes.length === 0) {
           console.info("No pending balance to consume");
           return;

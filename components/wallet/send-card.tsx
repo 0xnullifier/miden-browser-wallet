@@ -19,6 +19,7 @@ import {
   BASE_URL,
   DECIMALS,
   GITHUB_FEEDBACK_URL,
+  PRIVATE_NOTE_TRANSPORT_URL,
   RPC_ENDPOINT,
 } from "@/lib/constants";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
@@ -104,39 +105,39 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const processTxAfterConnection = async () => {
     if (!account) return;
-
-    if (!clientRef.current) {
-      console.error("Miden SDK client not initialized for sending transaction");
-    }
-
-    try {
-      const { tx, note } = await send(
-        clientRef.current,
-        account,
-        recipient,
-        Number(amount),
-        isPrivate,
-        selectedFaucet.address,
-        decimals,
-        delegate,
-      );
-      setNote(note);
-      sucessTxToast("Transaction sent successfully", tx);
-      setNoteBytes(Array.from(note.serialize()));
-      setTx(tx);
-    } catch (error) {
-      console.error("Error sending transaction:", error);
-      toast.error(
-        "Failed to send transaction: " +
-          (error instanceof Error ? error.message : "Unknown error"),
-      );
-      setLoading(false);
-      setAmount("");
-      setRecipient("");
-    } finally {
-      if (clientRef.current) {
-        clientRef.current.terminate();
-        clientRef.current = null;
+    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    if (clientRef.current instanceof WebClient) {
+      try {
+        const { tx, note } = await send(
+          clientRef.current,
+          account,
+          recipient,
+          Number(amount),
+          isPrivate,
+          selectedFaucet.address,
+          decimals,
+          delegate,
+        );
+        clientRef.current.sendPrivateNote(note, Address.fromBech32(recipient));
+        console.log("note sent");
+        // setNote(note);
+        // sucessTxToast("Transaction sent successfully", tx);
+        // setNoteBytes(Array.from(note.serialize()));
+        // setTx(tx);
+      } catch (error) {
+        console.error("Error sending transaction:", error);
+        toast.error(
+          "Failed to send transaction: " +
+            (error instanceof Error ? error.message : "Unknown error"),
+        );
+        setLoading(false);
+        setAmount("");
+        setRecipient("");
+      } finally {
+        if (clientRef.current) {
+          clientRef.current.terminate();
+          clientRef.current = null;
+        }
       }
     }
   };
@@ -315,7 +316,10 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const onSend = async () => {
     setLoading(true);
     const { WebClient } = await import("@demox-labs/miden-sdk");
-    clientRef.current = await WebClient.createClient(RPC_ENDPOINT);
+    clientRef.current = await WebClient.createClient(
+      RPC_ENDPOINT,
+      PRIVATE_NOTE_TRANSPORT_URL,
+    );
     if (recipient === account) {
       toast.error("You cannot send payment to yourself");
       setLoading(false);

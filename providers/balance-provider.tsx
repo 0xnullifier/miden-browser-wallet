@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { type ReactNode, createContext, useRef, useContext } from "react";
 import { useStore } from "zustand";
 import { type BalanceState, createBalanceStore } from "@/store/balance";
-import { RPC_ENDPOINT } from "@/lib/constants";
+import { PRIVATE_NOTE_TRANSPORT_URL, RPC_ENDPOINT } from "@/lib/constants";
 import { useMidenSdkStore } from "./sdk-provider";
 
 export type Balancestore = ReturnType<typeof createBalanceStore>;
@@ -52,7 +52,10 @@ export const useObserveBalance = () => {
   useEffect(() => {
     const initClient = async () => {
       const { WebClient } = await import("@demox-labs/miden-sdk");
-      const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
+      const clientInstance = await WebClient.createClient(
+        RPC_ENDPOINT,
+        PRIVATE_NOTE_TRANSPORT_URL,
+      );
       setClient(clientInstance);
     };
     initClient();
