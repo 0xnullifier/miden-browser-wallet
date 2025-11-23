@@ -19,6 +19,7 @@ import {
   BASE_URL,
   DECIMALS,
   GITHUB_FEEDBACK_URL,
+  PRIVATE_NOTE_TRANSPORT_URL,
   RPC_ENDPOINT,
 } from "@/lib/constants";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
@@ -104,39 +105,93 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const processTxAfterConnection = async () => {
     if (!account) return;
-
-    if (!clientRef.current) {
-      console.error("Miden SDK client not initialized for sending transaction");
+    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    if (clientRef.current instanceof WebClient) {
+      try {
+        const { tx, note } = await send(
+          clientRef.current,
+          account,
+          recipient,
+          Number(amount),
+          isPrivate,
+          selectedFaucet.address,
+          decimals,
+          delegate,
+        );
+        clientRef.current.sendPrivateNote(note, Address.fromBech32(recipient));
+        console.log("note sent");
+        // setNote(note);
+        // sucessTxToast("Transaction sent successfully", tx);
+        // setNoteBytes(Array.from(note.serialize()));
+        // setTx(tx);
+      } catch (error) {
+        console.error("Error sending transaction:", error);
+        toast.error(
+          "Failed to send transaction: " +
+            (error instanceof Error ? error.message : "Unknown error"),
+        );
+        setLoading(false);
+        setAmount("");
+        setRecipient("");
+      } finally {
+        if (clientRef.current) {
+          clientRef.current.terminate();
+          clientRef.current = null;
+        }
+      }
     }
+  };
 
-    try {
-      const { tx, note } = await send(
-        clientRef.current,
-        account,
-        recipient,
-        Number(amount),
-        isPrivate,
-        selectedFaucet.address,
-        decimals,
-        delegate,
-      );
-      setNote(note);
-      sucessTxToast("Transaction sent successfully", tx);
-      setNoteBytes(Array.from(note.serialize()));
-      setTx(tx);
-    } catch (error) {
-      console.error("Error sending transaction:", error);
-      toast.error(
-        "Failed to send transaction: " +
-          (error instanceof Error ? error.message : "Unknown error"),
-      );
-      setLoading(false);
-      setAmount("");
-      setRecipient("");
-    } finally {
-      if (clientRef.current) {
-        clientRef.current.terminate();
-        clientRef.current = null;
+  const sendPrivateTx = async () => {
+    if (!account) return;
+    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    if (clientRef.current instanceof WebClient) {
+      try {
+        const { tx, note } = await send(
+          clientRef.current,
+          account,
+          recipient,
+          Number(amount),
+          isPrivate,
+          selectedFaucet.address,
+          decimals,
+          delegate,
+        );
+        sucessTxToast("Transaction sent successfully", tx);
+
+        toast.promise(
+          clientRef.current.sendPrivateNote(
+            note,
+            Address.fromBech32(recipient),
+          ),
+          {
+            position: "top-right",
+            loading: "Sending Private Note..",
+            success: () => {
+              setLoading(false);
+              return "Private Note Sent! 🚀";
+            },
+
+            error: () => {
+              setLoading(false);
+              return "Failed";
+            },
+          },
+        );
+      } catch (error) {
+        console.error("Error sending transaction:", error);
+        toast.error(
+          "Failed to send transaction: " +
+            (error instanceof Error ? error.message : "Unknown error"),
+        );
+        setLoading(false);
+        setAmount("");
+        setRecipient("");
+      } finally {
+        if (clientRef.current) {
+          clientRef.current.terminate();
+          clientRef.current = null;
+        }
       }
     }
   };
@@ -180,52 +235,6 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
       clientRef.current.terminate();
     }
   };
-
-  useEffect(() => {
-    // Only send note bytes if we're connected and not going offline
-    if (
-      stage === "pongreceived" &&
-      noteBytes &&
-      dc &&
-      dc.readyState === "open" &&
-      !doItAsync
-    ) {
-      console.log("Sending note bytes through data channel...");
-      dc.send(
-        JSON.stringify({
-          type: MESSAGE_TYPE.NOTE_BYTES,
-          bytes: Array.from(noteBytes),
-          receiver: recipient,
-        }),
-      );
-    }
-
-    // If we have note bytes but should go offline (doItAsync=true), create the link
-    if (noteBytes && doItAsync) {
-      console.log("Creating offline link for note...");
-      const base64Note = btoa(String.fromCharCode(...noteBytes))
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-      setBase64NoteStr(base64Note);
-      setReceiverOfflineDialog(true);
-      setLoading(false);
-      setAmount("");
-    }
-
-    if (stage === "noteReceivedAck" && dc.readyState === "open") {
-      setLoading(false);
-      setNoteBytes(null);
-      setTx(null);
-      setBase64NoteStr(null);
-      toast.success("Note sent successfully", { position: "top-right" });
-      setAmount("");
-      setRecipient("");
-      dc.close();
-      setDataChannel(null);
-      console.log("Private note received acknowledgment");
-    }
-  }, [stage, dc, noteBytes, doItAsync, pc, setDataChannel]);
 
   useEffect(() => {
     console.log("Stage changed:", stage);
@@ -315,7 +324,10 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const onSend = async () => {
     setLoading(true);
     const { WebClient } = await import("@demox-labs/miden-sdk");
-    clientRef.current = await WebClient.createClient(RPC_ENDPOINT);
+    clientRef.current = await WebClient.createClient(
+      RPC_ENDPOINT,
+      PRIVATE_NOTE_TRANSPORT_URL,
+    );
     if (recipient === account) {
       toast.error("You cannot send payment to yourself");
       setLoading(false);
@@ -340,10 +352,12 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
       toast.info("Establishing connection for private note transfer...", {
         position: "top-right",
       });
-      setStage("webrtcStarted");
+      await sendPrivateTx();
+      return;
+    } else {
+      await processOfflineTransaction();
+      return;
     }
-
-    await createOffer();
   };
 
   const copyToClipboard = async (text: string) => {

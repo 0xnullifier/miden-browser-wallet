@@ -45,6 +45,7 @@ export const createBalanceStore = () =>
     loadBalance: async (client, _accountId) => {
       const { Address, WebClient } = await import("@demox-labs/miden-sdk");
       if (client instanceof WebClient) {
+        console.log(_accountId);
         const address = Address.fromBech32(_accountId);
         const accountId = address.accountId();
         const { faucets, consumingLoading } = get();
@@ -63,6 +64,7 @@ export const createBalanceStore = () =>
               let tokenInfo = faucets.find(
                 (faucet) => faucet.address === asset.faucetId().toString(),
               );
+              console.log(asset);
               if (!tokenInfo) {
                 tokenInfo = await getTokenInfo(asset.faucetId().toString());
                 set((state) => ({
@@ -79,8 +81,9 @@ export const createBalanceStore = () =>
           balances[FAUCET_ID] = 0;
         }
         set({ loading: false, balances });
-
+        await client.fetchPrivateNotes();
         const consumableNotes = await client.getConsumableNotes();
+        console.log(consumableNotes.length);
         if (consumableNotes.length === 0) {
           console.info("No pending balance to consume");
           return;
@@ -91,7 +94,6 @@ export const createBalanceStore = () =>
             "@demox-labs/miden-sdk"
           );
           const newClient = await WebClient.createClient(RPC_ENDPOINT);
-          const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
           try {
             toast.info(
               `Found ${consumableNotes.length} pending notes to consume, consuming...`,
@@ -102,7 +104,6 @@ export const createBalanceStore = () =>
             const noteIds = consumableNotes.map((note: any) =>
               note.inputNoteRecord().id().toString(),
             );
-
             const consumeTxRequest =
               newClient.newConsumeTransactionRequest(noteIds);
             const txId = await submitTransactionWithRetry(
