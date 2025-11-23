@@ -94,7 +94,6 @@ export const createBalanceStore = () =>
             "@demox-labs/miden-sdk"
           );
           const newClient = await WebClient.createClient(RPC_ENDPOINT);
-          const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
           try {
             toast.info(
               `Found ${consumableNotes.length} pending notes to consume, consuming...`,
@@ -105,7 +104,6 @@ export const createBalanceStore = () =>
             const noteIds = consumableNotes.map((note: any) =>
               note.inputNoteRecord().id().toString(),
             );
-
             const consumeTxRequest =
               newClient.newConsumeTransactionRequest(noteIds);
             const txId = await submitTransactionWithRetry(
