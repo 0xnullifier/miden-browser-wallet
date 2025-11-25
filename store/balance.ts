@@ -126,15 +126,11 @@ export const createBalanceStore = () =>
     faucet: async (accountId, amount) => {
       set({ faucetLoading: true });
       try {
-        const { AccountId, Address } = await import("@demox-labs/miden-sdk");
         const amountInBaseDenom = BigInt(
           Math.trunc(Number(amount) * 10 ** DECIMALS),
         );
-        const accountIdHex = Address.fromBech32(accountId)
-          .accountId()
-          .toString();
         const txId = await axios.get(
-          FAUCET_API_ENDPOINT(accountIdHex, amountInBaseDenom.toString()),
+          FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()),
         );
         sucessTxToast(
           "Faucet used successfully",

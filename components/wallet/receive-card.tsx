@@ -48,9 +48,7 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
           {/* Address */}
           <div className="space-y-3 border-t-[0.5px] py-6 px-6">
             <div className="flex items-center gap-1 justify-center">
-              <code className="flex-1 text-sm">
-                {walletAddress}
-              </code>
+              <code className="flex-1 text-sm">{walletAddress}</code>
               <Button
                 size="sm"
                 variant="ghost"
@@ -60,7 +58,7 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
                 {copied ? (
                   <Check className="h-4 w-4 text-green-400" />
                 ) : (
-                  <Copy className="h-4 w-4" color="#FF5500"/>
+                  <Copy className="h-4 w-4" color="#FF5500" />
                 )}
               </Button>
             </div>

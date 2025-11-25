@@ -74,7 +74,9 @@ export function WalletCard({
   return (
     <div>
       <div className="w-full h-8 bg-primary flex items-center justify-center">
-        <p className="text-white font-departureMono font-bold">MIDEN BROWSER WALLET</p>
+        <p className="text-white font-departureMono font-bold">
+          MIDEN BROWSER WALLET
+        </p>
       </div>
       <Card className="bg-card border-border ring-1 ring-primary/10 py-2 gap-0">
         <CardHeader className="border-b pb-0">

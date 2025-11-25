@@ -31,11 +31,10 @@ const giest = Geist({
   weight: ["400", "500", "700"],
 });
 
-
 const departureMono = localfont({
   src: "./DepartureMono-Regular.woff2",
   variable: "--font-departure-mono",
-})
+});
 
 export const metadata: Metadata = {
   title: "Miden Web Wallet",
