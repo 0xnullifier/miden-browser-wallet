@@ -1,11 +1,13 @@
 /// the transaction store
 import { FAUCET_ID } from "@/lib/constants";
+import { time } from "console";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 export interface UITransaction {
   id: string;
   type: "Incoming" | "Outgoing" | "Faucet";
   amount: bigint;
+  blockNumber: string;
   timestamp: string;
   address: string;
   status: "isCommited" | "isPending" | "isFailed";
@@ -31,7 +33,7 @@ function transactionRecordToUITransaction({
       .outputNotes()
       .notes()
       .map((note) => note.intoFull());
-    const transactions = outputNotes.map((note) => {
+    const transactions: UITransaction[] = outputNotes.map((note) => {
       const amount = note
         .assets()
         .fungibleAssets()
@@ -52,7 +54,8 @@ function transactionRecordToUITransaction({
         type: "Outgoing",
         amount,
         address: faucetId,
-        timestamp: tr.blockNum().toString(),
+        blockNumber: tr.blockNum().toString(),
+        timestamp: formatDate(new Date(Number(tr.creationTimestamp()) * 1000)),
         status: statusObject.isCommitted()
           ? "isCommited"
           : statusObject.isPending()
@@ -67,7 +70,7 @@ function transactionRecordToUITransaction({
         "Input notes do not match transaction input note nullifiers",
       );
     }
-    const transactions = [];
+    const transactions: UITransaction[] = [];
     for (const inputNote of inputNotes) {
       const amount = inputNote
         .details()
@@ -97,7 +100,8 @@ function transactionRecordToUITransaction({
         address: faucetId,
         type: transactionType,
         amount: amount,
-        timestamp: tr.blockNum().toString(),
+        blockNumber: tr.blockNum().toString(),
+        timestamp: formatDate(new Date(Number(tr.creationTimestamp()) * 1000)),
         status: statusObject.isCommitted()
           ? "isCommited"
           : statusObject.isPending()
@@ -122,7 +126,7 @@ export const createTransactionStore = () =>
           );
 
           transactions.sort(
-            (a, b) => Number(b.timestamp) - Number(a.timestamp),
+            (a, b) => Number(b.blockNumber) - Number(a.blockNumber),
           );
           set({ transactions });
         } catch (error) {
@@ -133,3 +137,15 @@ export const createTransactionStore = () =>
       },
     })),
   );
+
+const formatDate = (date: Date) => {
+  const yyyy = date.getFullYear();
+  let mm = date.getMonth() + 1; // Months start at 0!
+  let dd = date.getDate();
+  let ddStr = dd.toString();
+  let mmStr = mm.toString();
+  if (dd < 10) ddStr = "0" + dd;
+  if (mm < 10) mmStr = "0" + mm;
+
+  return dd + "." + mm + "." + yyyy;
+};

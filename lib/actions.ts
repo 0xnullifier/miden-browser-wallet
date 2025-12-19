@@ -13,7 +13,6 @@ export async function send(
   decimals: number,
   delegate?: boolean,
 ) {
-  console.log("Send called");
   const {
     WebClient,
     AccountId,

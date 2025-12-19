@@ -456,7 +456,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   return (
     <div className="w-full">
-      <Card className="rounded-[10px] py-0 border gap-0">
+      <Card className="rounded-[10px] py-0 border-border gap-0 ">
         <CardHeader className="bg-[#F9F9F9] rounded-t-[10px] py-[10px] border-b-[0.5px] flex items-center justify-center">
           <div className="text-center text-xl font-medium">Send</div>
         </CardHeader>
@@ -474,7 +474,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
                 setAmount(value);
               }
             }}
-            className="text-center text-[40px] h-[90px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#00000087 border-b-[0.5px]"
+            className="text-center text-[40px] h-[90px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#00000087"
           />
 
           {/* Recipient Field */}
@@ -494,6 +494,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
             subTitle="Send to multiple recipients"
             value={isOneToMany}
             onToggle={setIsOneToMany}
+            first={true}
           />
           <OptionItem
             title="Private Payment"
@@ -640,14 +641,18 @@ export const OptionItem = ({
   title,
   subTitle,
   value,
+  first,
 }: {
   onToggle: (val: boolean) => void;
   title: string;
   subTitle: string;
   value: boolean;
+  first?: boolean;
 }) => {
   return (
-    <div className="flex items-center justify-between font-geist border-y-[0.5px]">
+    <div
+      className={`flex items-center justify-between font-geist ${first ? "" : "border-t-[0.5px]"}`}
+    >
       <div className="space-y-1 pl-5">
         <div className="text-sm font-medium text-foreground">{title}</div>
         <div className="text-xs text-muted-foreground">{subTitle}</div>
@@ -671,12 +676,12 @@ const Switch2 = ({
     return (
       <div className="flex">
         <div
-          className="cursor-pointer text-primary w-[64px] h-[54px] text-sm bg-[#F9F9F9] border-x-[0.5px] flex items-center justify-center"
+          className="cursor-pointer text-primary w-[64px] h-[54px] text-sm bg-[#F9F9F9] border-x-[0.5px] flex items-center justify-center px-[1px]"
           onClick={() => onToggle(false)}
         >
           On
         </div>
-        <div className="w-[64px] h-[54px] bg-background"></div>
+        <div className="w-[64px] h-[54px] bg-background rounded-[10px]"></div>
       </div>
     );
   } else {
@@ -684,7 +689,7 @@ const Switch2 = ({
       <div className="flex">
         <div className="w-[64px] h-[54px] border-l-[0.5px]"></div>
         <div
-          className="cursor-pointer text-primary text-sm w-[64px] h-[54px] flex items-center justify-center bg-[#F9F9F9] border-x-[0.5px]"
+          className="cursor-pointer text-primary text-sm w-[64px] h-[54px] flex items-center justify-center bg-[#F9F9F9] border-l-[0.5px] rounded-br-[10px]"
           onClick={() => onToggle(true)}
         >
           Off

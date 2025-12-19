@@ -28,12 +28,12 @@ export function Faucet({ onClose }: { onClose: () => void }) {
   };
   return (
     <div className="w-full font-geist">
-      <Card className="rounded-[5px] py-0 border gap-4">
-        <CardHeader className="bg-[#F9F9F9] py-[7px] border-b-[0.5px] flex items-center justify-center">
-          <div className="text-center text-sm font-medium">Faucet</div>
+      <Card className="rounded-[10px] py-0 border-border gap-4">
+        <CardHeader className="bg-[#F9F9F9] rounded-t-[10px] py-[7px] border-b-[0.5px] flex items-center justify-center">
+          <div className="text-center text font-medium">Faucet</div>
         </CardHeader>
-        <CardContent className="space-y-3 pb-4 pt-0">
-          <div className="flex flex-col gap-2">
+        <CardContent className="pt-0 px-0">
+          <div className="flex flex-col gap-2 border-border border-b-[0.5px] pb-3 px-[26px]">
             <div className="flex gap-2 items-center justify-between">
               <label className="text-sm font-medium text-foreground">
                 Amount
@@ -43,7 +43,7 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                   <button
                     key={val}
                     className={
-                      "text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border min-w-[34px] h-[17px] flex items-center " +
+                      "text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border-border border-[0.5px] rounded-[3px] min-w-[34px] h-[17px] flex items-center font-medium " +
                       (amount === val.toString()
                         ? "bg-primary text-primary-foreground border-primary"
                         : " border-neutral-400 dark:border-muted")
@@ -55,22 +55,21 @@ export function Faucet({ onClose }: { onClose: () => void }) {
                 ))}
               </div>
             </div>
-            <Input
-              type="text"
-              value={amount.toString()}
-              placeholder="0.00"
-              onChange={(e) => {
-                setAmount(e.target.value);
-                if (parseFloat(e.target.value) > 10000) {
-                  setShowAlert(true);
-                } else {
-                  setShowAlert(false);
-                }
-              }}
-              className="text-base h-10 outline-none focus:ring-1 focus:outline-none"
-            />
           </div>
-
+          <Input
+            type="text"
+            value={amount.toString()}
+            placeholder="Type in a number up to 10,000"
+            onChange={(e) => {
+              setAmount(e.target.value);
+              if (parseFloat(e.target.value) > 10000) {
+                setShowAlert(true);
+              } else {
+                setShowAlert(false);
+              }
+            }}
+            className="text-sm px-2 h-[38px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#000000 placeholder:font-medium resize-none text-center flex items-center mt-0 placeholder:mt-0"
+          />
           {showAlert && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -79,20 +78,20 @@ export function Faucet({ onClose }: { onClose: () => void }) {
               </AlertDescription>
             </Alert>
           )}
-
-          <Button
-            className="w-full h-10 text-sm font-medium flex items-center justify-center bg-primary"
-            disabled={!amount || faucetLoading || showAlert}
-            onClick={onMint}
-            variant="default"
-          >
-            {faucetLoading ? (
-              <Loader2 className="animate-spin h-4 w-4 mr-2" />
-            ) : null}
-            {faucetLoading ? "Minting..." : "Mint"}
-          </Button>
         </CardContent>
       </Card>
+
+      <Button
+        className="w-full h-10 text-sm flex items-center justify-center bg-primary mt-5 font-bold"
+        disabled={!amount || faucetLoading || showAlert}
+        onClick={onMint}
+        variant="default"
+      >
+        {faucetLoading ? (
+          <Loader2 className="animate-spin h-4 w-4 mr-2" />
+        ) : null}
+        {faucetLoading ? "Minting..." : "Mint"}
+      </Button>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
 
   return (
     <div className="w-full font-geist">
-      <Card className="rounded-[5px] py-0 border gap-4">
+      <Card className="rounded-[5px] py-0 border-border gap-4">
         <CardHeader className="bg-[#F9F9F9] rounded-t-[10px] py-[10px] border-b-[0.5px] flex items-center justify-center">
           <div className="text-center text-xl font-medium">Receive</div>
         </CardHeader>

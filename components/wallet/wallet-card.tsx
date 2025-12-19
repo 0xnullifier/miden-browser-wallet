@@ -79,7 +79,7 @@ export function WalletCard({
         </p>
       </div>
       <Card className="bg-card border-border ring-1 ring-primary/10 py-2 gap-0">
-        <CardHeader className="border-b py-1 bg-[#F9F9F9]">
+        <CardHeader className="border-b-[0.5px] py-1 bg-[#F9F9F9]">
           <div className="flex text-sm justify-between items-center">
             <span
               className="font-mono cursor-pointer hover:text-primary relative transition-colors"
@@ -110,7 +110,7 @@ export function WalletCard({
         <CardContent className="px-0">
           {/* Balance */}
           <Balance faucet={faucet} />
-          <div className="flex justify-between gap-2 py-4 border-t px-6">
+          <div className="flex justify-between gap-2 py-4 border-t-[0.5px] border-border px-6">
             {ACTIONS(toShow).map((action) => (
               <ActionButton
                 key={action.type}

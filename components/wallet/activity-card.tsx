@@ -11,12 +11,13 @@ import {
   Shield,
   Clock,
   XCircle,
+  Scroll,
 } from "lucide-react";
 import { cn, numToString } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DECIMALS, NETWORK_ID, RPC_ENDPOINT } from "@/lib/constants";
 import { UITransaction } from "@/store/transaction";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function formatAmount(
   amount: bigint,
@@ -37,21 +38,21 @@ function getTransactionIcon(
   status: UITransaction["status"],
 ) {
   if (status === "isPending") {
-    return <Clock className="w-5 h-5 text-yellow-500" />;
+    return <Clock className="w-6 h-6 text-yellow-500" />;
   }
   if (status === "isFailed") {
-    return <XCircle className="w-5 h-5 text-red-500" />;
+    return <XCircle className="w-6 h-6 text-red-500" />;
   }
 
   switch (type) {
     case "Outgoing":
-      return <ArrowUpRight className="w-5 h-5 text-red-500" />;
+      return <ArrowUpRight className="w-6 h-6 text-red-500" />;
     case "Incoming":
-      return <ArrowDownLeft className="w-5 h-5 text-green-500" />;
+      return <ArrowDownLeft className="w-6 h-6 text-green-500" />;
     case "Faucet":
-      return <Droplets className="w-5 h-5 text-green-500" />;
+      return <Droplets className="w-6 h-6 text-green-500" />;
     default:
-      return <Shield className="w-5 h-5 text-purple-500" />;
+      return <Shield className="w-6 h-6 text-purple-500" />;
   }
 }
 
@@ -80,14 +81,21 @@ function getAmountColor(
       return "text-red-500";
     case "Incoming":
     case "Faucet":
-      return "text-green-500";
+      return "text-[#24D845]";
     default:
-      return "text-green-500";
+      return "text-[#24D845]";
   }
 }
 
-function TransactionItem({ transaction }: { transaction: UITransaction }) {
-  const { type, amount, timestamp, status, id, address } = transaction;
+function TransactionItem({
+  transaction,
+  last,
+}: {
+  transaction: UITransaction;
+  last?: boolean;
+}) {
+  const { type, amount, timestamp, blockNumber, status, id, address } =
+    transaction;
   const faucetInfo = useBalanceStore((state) => state.faucets);
   const decimals =
     faucetInfo.find((faucet) => faucet.address === address)?.decimals ||
@@ -101,24 +109,26 @@ function TransactionItem({ transaction }: { transaction: UITransaction }) {
     : `+${formattedAmount}`;
   return (
     <Card
-      className="hover:bg-muted/50 transition-colors cursor-pointer"
+      className={`cursor-pointer border-0 ${last ? "" : "border-b-[0.5px]"} border-border pt-4 pb-3 ${last ? "rounded-b-[10px]" : "rounded-none"}`}
       onClick={() => {
         window.open(`/dashboard/tx/${id}`, "_blank");
       }}
     >
-      <CardContent className="flex items-center gap-4">
-        <div className="flex-shrink-0">{getTransactionIcon(type, status)}</div>
-
-        <div className="flex-1 min-w-0">
-          <div className="text-foreground font-medium">
-            {getTransactionLabel(type)}
-          </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground font-mono opacity-70">
-            # {timestamp}
+      <CardContent className="flex justify-between items-center gap-4">
+        <div className="flex items-center gap-2">
+          <div className="">{getTransactionIcon(type, status)}</div>
+          <div className="">
+            <div className="font-medium text-base">
+              {getTransactionLabel(type)}
+            </div>
+            <div className="text-[#000000] font-normal text-[10px] opacity-50">
+              #{blockNumber}
+            </div>
           </div>
         </div>
-
-        <div className={cn("font-light", getAmountColor(type, status))}>
+        <div
+          className={cn("font-medium text-base", getAmountColor(type, status))}
+        >
           {displayAmount}
         </div>
       </CardContent>
@@ -135,6 +145,9 @@ export function ActivityCardList() {
   const account = useMidenSdkStore((state) => state.account);
   const blockNum = useMidenSdkStore((state) => state.blockNum);
   const [clientInitialized, setClientInitialized] = useState(false);
+  const [dates, setDates] = useState<Set<string>>(new Set());
+  const [dateToFilter, setDateToFilter] = useState<string>("");
+  const [txToDisplay, setTxToDisplay] = useState<UITransaction[]>([]);
 
   useEffect(() => {
     const initClient = async () => {
@@ -153,6 +166,27 @@ export function ActivityCardList() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const uniqueDates = new Set<string>();
+    transactions.forEach((tx) => {
+      uniqueDates.add(tx.timestamp);
+    });
+    // Limit to 5 most recent dates
+    const limitedDates = Array.from(uniqueDates).slice(0, 5);
+    setDates(new Set(limitedDates));
+  }, [transactions]);
+
+  useEffect(() => {
+    if (dateToFilter === "") {
+      setTxToDisplay(transactions);
+    } else {
+      const filtered = transactions.filter(
+        (tx) => tx.timestamp === dateToFilter,
+      );
+      setTxToDisplay(filtered);
+    }
+  }, [dateToFilter, transactions]);
 
   useEffect(() => {
     if (!account) return;
@@ -197,6 +231,7 @@ export function ActivityCardList() {
 
     fetchTransactions();
   }, [clientInitialized, account, blockNum]);
+
   if (transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -210,14 +245,45 @@ export function ActivityCardList() {
       </div>
     );
   }
-
   return (
-    <ScrollArea className="h-[298px]">
-      <div className="space-y-3">
-        {transactions.map((transaction, index) => (
-          <TransactionItem key={index} transaction={transaction} />
-        ))}
-      </div>
-    </ScrollArea>
+    <Card className="rounded-[10px] py-0 border-border gap-0 ">
+      <CardHeader className="bg-[#F9F9F9] rounded-t-[10px] py-[10px] border-b-[0.5px] flex items-center justify-center">
+        <div className="text-center text-base font-medium">Recent Activity</div>
+      </CardHeader>
+      <CardContent className="pt-0 px-0">
+        <div className="flex items-center gap-2 border-border border-b-[0.5px] h-[34px] px-[26px]">
+          {Array.from(dates).map((val) => (
+            <button
+              key={val}
+              className={
+                "text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border-border border-[0.5px] rounded-[3px] min-w-[34px] h-[17px] flex items-center font-medium " +
+                (dateToFilter === val
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : " border-neutral-400 dark:border-muted")
+              }
+              onClick={() => setDateToFilter(dateToFilter === val ? "" : val)}
+            >
+              {val}
+            </button>
+          ))}
+        </div>
+        <ScrollArea
+          className="rounded-b-[10px]"
+          style={{
+            height: `${txToDisplay.length >= 3 ? 67.5 * 3 : 67.5 * txToDisplay.length}px`,
+          }}
+        >
+          <div>
+            {txToDisplay.map((transaction, index) => (
+              <TransactionItem
+                key={index}
+                transaction={transaction}
+                last={index == txToDisplay.length - 1}
+              />
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 }
