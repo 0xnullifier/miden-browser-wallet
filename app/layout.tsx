@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, DM_Mono, Geist } from "next/font/google";
+import { Inter, Geist } from "next/font/google";
 import localfont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -18,11 +18,10 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const mono = DM_Mono({
+const mono = Geist({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "700"],
 });
 
 const giest = Geist({

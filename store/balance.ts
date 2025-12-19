@@ -83,16 +83,13 @@ export const createBalanceStore = () =>
         set({ loading: false, balances });
         await client.fetchPrivateNotes();
         const consumableNotes = await client.getConsumableNotes();
-        console.log(consumableNotes.length);
         if (consumableNotes.length === 0) {
           console.info("No pending balance to consume");
           return;
         } else if (!consumingLoading) {
           set({ consumingLoading: true });
           // if consumable notes are found we consume them but terminate the client after consuming
-          const { WebClient, TransactionProver } = await import(
-            "@demox-labs/miden-sdk"
-          );
+          const { WebClient } = await import("@demox-labs/miden-sdk");
           const newClient = await WebClient.createClient(RPC_ENDPOINT);
           try {
             toast.info(
@@ -104,6 +101,7 @@ export const createBalanceStore = () =>
             const noteIds = consumableNotes.map((note: any) =>
               note.inputNoteRecord().id().toString(),
             );
+            console.log("Consuming notes with IDs:", noteIds);
             const consumeTxRequest =
               newClient.newConsumeTransactionRequest(noteIds);
             const txId = await submitTransactionWithRetry(

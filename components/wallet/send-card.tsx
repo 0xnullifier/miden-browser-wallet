@@ -456,22 +456,16 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   return (
     <div className="w-full">
-      <Card className="rounded-[5px] py-0 border gap-0">
-        <CardHeader className="bg-[#F9F9F9] py-[7px] border-b-[0.5px] flex items-center justify-center">
-          <div className="text-center text-sm font-medium">Send</div>
+      <Card className="rounded-[10px] py-0 border gap-0">
+        <CardHeader className="bg-[#F9F9F9] rounded-t-[10px] py-[10px] border-b-[0.5px] flex items-center justify-center">
+          <div className="text-center text-xl font-medium">Send</div>
         </CardHeader>
         <CardContent className="px-0 gap-0">
-          {/* Amount Field */}
-          {/* <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Amount
-            </label>
-            <div className="flex gap-2 relative"> */}
           <Input
             type="text"
             inputMode="decimal"
             pattern="^[0-9]*[.,]?[0-9]*$"
-            placeholder={`0${selectedFaucet.symbol}`}
+            placeholder={`0 ${selectedFaucet.symbol}`}
             value={amount}
             onChange={(e) => {
               const value = e.target.value;
@@ -480,31 +474,17 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
                 setAmount(value);
               }
             }}
-            className="text-center text-[40px] h-[90px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#0000004F border-b-[0.5px]"
+            className="text-center text-[40px] h-[90px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#00000087 border-b-[0.5px]"
           />
-          {/* <button
-                type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white focus:outline-none"
-                onClick={() => setAmount(balance ? balance.toString() : "")}
-                tabIndex={-1}
-              >
-                Max
-              </button>
-            </div>
-          </div> */}
 
           {/* Recipient Field */}
           <div className="flex items-center border-y-[0.5px] w-full">
-            <div className="text-base font-medium px-5 py-6  bg-[#F9F9F9]">
-              To
-            </div>
             <div className="flex gap-2 w-full">
-              <textarea
+              <Input
                 placeholder="mtst1qzv...5tfg"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                rows={2}
-                className="text-base px-2 w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C resize-none"
+                className="text-sm px-2 h-[48px] w-full border-0 ring-0 !outline-none !shadow-none focus:!outline-none bg-transparent placeholder:text-#2929299C resize-none text-center"
               />
             </div>
           </div>
@@ -531,7 +511,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         </CardContent>
       </Card>
       <Button
-        className="w-full h-10 text-sm font-medium mt-4 rounded-[5px]"
+        className="w-full h-10 text-sm font-medium mt-[5px] rounded-[5px]"
         disabled={
           !amount ||
           !recipient ||

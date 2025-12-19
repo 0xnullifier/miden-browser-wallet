@@ -27,9 +27,9 @@ export function Balance({ faucet }: { faucet: FaucetInfo }) {
   const balanceMap = useBalanceStore((state) => state.balances);
   const symbol = faucet.symbol || "MDN";
   return (
-    <div className="text-4xl sm:text-5xl font-light leading-tight py-2 flex flex-col items-center">
+    <div className="text-4xl sm:text-[52px] font-light leading-tight py-2 flex flex-col items-center">
       {numToString(balanceMap[faucet.address])}
-      <p className="text-2xl text-primary font-normal">{symbol}</p>
+      <p className="text-xl text-primary font-normal">{symbol}</p>
     </div>
   );
 }
@@ -73,14 +73,14 @@ export function WalletCard({
   }, [account]);
   return (
     <div>
-      <div className="w-full h-8 bg-primary flex items-center justify-center">
+      <div className="w-full h-10 bg-primary flex items-center justify-center rounded-[10px] mb-4">
         <p className="text-white font-departureMono font-bold">
           MIDEN BROWSER WALLET
         </p>
       </div>
       <Card className="bg-card border-border ring-1 ring-primary/10 py-2 gap-0">
-        <CardHeader className="border-b pb-0">
-          <div className="flex justify-between items-center">
+        <CardHeader className="border-b py-1 bg-[#F9F9F9]">
+          <div className="flex text-sm justify-between items-center">
             <span
               className="font-mono cursor-pointer hover:text-primary relative transition-colors"
               onClick={async () => {
