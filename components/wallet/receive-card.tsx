@@ -18,7 +18,8 @@ export const ReceiveCard = ({ onClose }: { onClose?: () => void }) => {
       setCopied(true);
       toast.success("Wallet address copied!");
       setTimeout(() => setCopied(false), 1500);
-    } catch {
+    } catch (error) {
+      console.log(error);
       toast.error("Failed to copy address");
     }
   };

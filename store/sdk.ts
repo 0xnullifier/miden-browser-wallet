@@ -162,7 +162,7 @@ export const createMidenSdkStore = () =>
           const newAccount = await client.newWallet(
             AccountStorageMode.private(),
             false,
-            0,
+            1,
           );
           const NID = await NETWORK_ID();
           const newAccountId = newAccount
@@ -197,7 +197,7 @@ export const createMidenSdkStore = () =>
         const newAccount = await client.newWallet(
           AccountStorageMode.private(),
           false,
-          0,
+          1,
         );
         setAccount(newAccount.id().toBech32(NID, 0));
         localStorage.setItem(

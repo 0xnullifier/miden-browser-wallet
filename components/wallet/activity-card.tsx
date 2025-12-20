@@ -239,6 +239,18 @@ export function ActivityCardList() {
     return 3 * 67.5 + dateOffset;
   }, [transactions]);
 
+  // sort in descending order of date
+  const sortedDates = useMemo(() => {
+    const dates = Object.keys(transactions);
+    const sorted = dates
+      .sort((a, b) => {
+        const dateA = new Date(a);
+        const dateB = new Date(b);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .reverse();
+    return sorted;
+  }, [transactions]);
   if (Object.keys(transactions).length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -266,7 +278,7 @@ export function ActivityCardList() {
           }}
         >
           <div>
-            {Object.keys(transactions).map((date, index) => (
+            {sortedDates.map((date, index) => (
               <>
                 <div
                   className={`flex items-center gap-2 border-border ${index == 0 ? "border-b-[0.5px]" : "border-y-[0.5px]"} h-[34px] px-[26px]`}
@@ -278,15 +290,15 @@ export function ActivityCardList() {
                     {date}
                   </div>
                 </div>
-                {Array.from(transactions[date]).map(
-                  (transaction, index, txToDisplay) => (
+                {Array.from(transactions[date])
+                  .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber))
+                  .map((transaction, index, txToDisplay) => (
                     <TransactionItem
                       key={index}
                       transaction={transaction}
                       last={index == txToDisplay.length - 1}
                     />
-                  ),
-                )}
+                  ))}
               </>
             ))}
           </div>
