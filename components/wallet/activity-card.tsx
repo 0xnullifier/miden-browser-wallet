@@ -1,7 +1,7 @@
 "use client";
 
 import { useMidenSdkStore } from "@/providers/sdk-provider";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTransactionStore } from "@/providers/transaction-provider";
 import { useBalanceStore } from "@/providers/balance-provider";
 import {
@@ -145,9 +145,7 @@ export function ActivityCardList() {
   const account = useMidenSdkStore((state) => state.account);
   const blockNum = useMidenSdkStore((state) => state.blockNum);
   const [clientInitialized, setClientInitialized] = useState(false);
-  const [dates, setDates] = useState<Set<string>>(new Set());
   const [dateToFilter, setDateToFilter] = useState<string>("");
-  const [txToDisplay, setTxToDisplay] = useState<UITransaction[]>([]);
 
   useEffect(() => {
     const initClient = async () => {
@@ -166,28 +164,6 @@ export function ActivityCardList() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    const uniqueDates = new Set<string>();
-    transactions.forEach((tx) => {
-      uniqueDates.add(tx.timestamp);
-    });
-    // Limit to 5 most recent dates
-    const limitedDates = Array.from(uniqueDates).slice(0, 5);
-    setDates(new Set(limitedDates));
-  }, [transactions]);
-
-  useEffect(() => {
-    if (dateToFilter === "") {
-      setTxToDisplay(transactions);
-    } else {
-      const filtered = transactions.filter(
-        (tx) => tx.timestamp === dateToFilter,
-      );
-      setTxToDisplay(filtered);
-    }
-  }, [dateToFilter, transactions]);
-
   useEffect(() => {
     if (!account) return;
     if (!clientRef.current) {
@@ -232,7 +208,38 @@ export function ActivityCardList() {
     fetchTransactions();
   }, [clientInitialized, account, blockNum]);
 
-  if (transactions.length === 0) {
+  const height = useMemo(() => {
+    if (Object.keys(transactions).length === 0) {
+      return 0;
+    }
+    const dates = Object.keys(transactions);
+    const sorted = dates.sort((a, b) => {
+      const dateA = new Date(a);
+      const dateB = new Date(b);
+      return dateB.getTime() - dateA.getTime();
+    });
+    console.log(sorted);
+    const dateOffset = 34;
+
+    if (transactions[sorted[0]].length < 3) {
+      if (transactions[sorted[1]]) {
+        if (transactions[sorted[1]].length < 3) {
+          return (
+            (transactions[sorted[0]].length + transactions[sorted[1]].length) *
+              67.5 +
+            dateOffset * 2
+          );
+        } else {
+          return 3 * 67.5 + dateOffset * 2;
+        }
+      } else {
+        return transactions[sorted[0]].length * 67.5 + dateOffset;
+      }
+    }
+    return 3 * 67.5 + dateOffset;
+  }, [transactions]);
+
+  if (Object.keys(transactions).length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="w-12 h-12 bg-muted/50 flex items-center justify-center mb-4">
@@ -245,41 +252,42 @@ export function ActivityCardList() {
       </div>
     );
   }
+
   return (
     <Card className="rounded-[10px] py-0 border-border gap-0 ">
       <CardHeader className="bg-[#F9F9F9] rounded-t-[10px] py-[10px] border-b-[0.5px] flex items-center justify-center">
         <div className="text-center text-base font-medium">Recent Activity</div>
       </CardHeader>
       <CardContent className="pt-0 px-0">
-        <div className="flex items-center gap-2 border-border border-b-[0.5px] h-[34px] px-[26px]">
-          {Array.from(dates).map((val) => (
-            <button
-              key={val}
-              className={
-                "text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border-border border-[0.5px] rounded-[3px] min-w-[34px] h-[17px] flex items-center font-medium " +
-                (dateToFilter === val
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : " border-neutral-400 dark:border-muted")
-              }
-              onClick={() => setDateToFilter(dateToFilter === val ? "" : val)}
-            >
-              {val}
-            </button>
-          ))}
-        </div>
         <ScrollArea
           className="rounded-b-[10px]"
           style={{
-            height: `${txToDisplay.length >= 3 ? 67.5 * 3 : 67.5 * txToDisplay.length}px`,
+            height: `${height}px`,
           }}
         >
           <div>
-            {txToDisplay.map((transaction, index) => (
-              <TransactionItem
-                key={index}
-                transaction={transaction}
-                last={index == txToDisplay.length - 1}
-              />
+            {Object.keys(transactions).map((date, index) => (
+              <>
+                <div
+                  className={`flex items-center gap-2 border-border ${index == 0 ? "border-b-[0.5px]" : "border-y-[0.5px]"} h-[34px] px-[26px]`}
+                >
+                  <div
+                    key={date}
+                    className="text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border-border border-[0.5px] rounded-[3px] min-w-[34px] h-[17px] flex items-center font-medium border-neutral-400 dark:border-muted"
+                  >
+                    {date}
+                  </div>
+                </div>
+                {Array.from(transactions[date]).map(
+                  (transaction, index, txToDisplay) => (
+                    <TransactionItem
+                      key={index}
+                      transaction={transaction}
+                      last={index == txToDisplay.length - 1}
+                    />
+                  ),
+                )}
+              </>
             ))}
           </div>
         </ScrollArea>

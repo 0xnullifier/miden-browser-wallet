@@ -3,6 +3,10 @@ import { FAUCET_ID } from "@/lib/constants";
 import { time } from "console";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { enableMapSet } from "immer";
+
+enableMapSet();
+
 export interface UITransaction {
   id: string;
   type: "Incoming" | "Outgoing" | "Faucet";
@@ -11,11 +15,15 @@ export interface UITransaction {
   timestamp: string;
   address: string;
   status: "isCommited" | "isPending" | "isFailed";
+  noteId: string;
 }
 
 export interface TransactionStore {
   loading: boolean;
-  transactions: UITransaction[];
+  transactions: {
+    [key: string]: UITransaction[];
+  };
+  nids: Set<string>;
   loadTransactions: (
     record: { tr: any; inputNotes: any | undefined }[],
   ) => Promise<void>;
@@ -26,7 +34,7 @@ function transactionRecordToUITransaction({
   inputNotes,
 }: {
   tr: any;
-  inputNotes: any | undefined;
+  inputNotes: import("@demox-labs/miden-sdk").InputNoteRecord[] | undefined;
 }): UITransaction[] {
   if (inputNotes === undefined || inputNotes.length === 0) {
     const outputNotes = tr
@@ -61,6 +69,7 @@ function transactionRecordToUITransaction({
           : statusObject.isPending()
             ? "isPending"
             : "isFailed",
+        noteId: note.id().toString(),
       };
     });
     return transactions;
@@ -107,6 +116,7 @@ function transactionRecordToUITransaction({
           : statusObject.isPending()
             ? "isPending"
             : "isFailed",
+        noteId: inputNote.id().toString(),
       });
     }
     return transactions;
@@ -115,20 +125,32 @@ function transactionRecordToUITransaction({
 
 export const createTransactionStore = () =>
   create<TransactionStore, [["zustand/immer", never]]>(
-    immer((set) => ({
+    immer((set, get) => ({
       loading: false,
-      transactions: [],
+      transactions: {},
+      nids: new Set<string>(),
       loadTransactions: async (record) => {
         set({ loading: true });
         try {
-          const transactions: UITransaction[] = record.flatMap((record) =>
-            transactionRecordToUITransaction(record),
-          );
-
-          transactions.sort(
-            (a, b) => Number(b.blockNumber) - Number(a.blockNumber),
-          );
-          set({ transactions });
+          for (const rec of record) {
+            const uiTransactions = transactionRecordToUITransaction(rec);
+            for (const tx of uiTransactions) {
+              const dateKey = tx.timestamp;
+              if (!get().transactions[dateKey]) {
+                set((state) => {
+                  state.transactions[dateKey] = [];
+                });
+              }
+              set((state) => {
+                if (!state.nids.has(tx.noteId)) {
+                  state.transactions[dateKey].push(tx);
+                }
+              });
+              set((state) => {
+                state.nids.add(tx.noteId);
+              });
+            }
+          }
         } catch (error) {
           console.error("Error loading transactions:", error);
         } finally {
