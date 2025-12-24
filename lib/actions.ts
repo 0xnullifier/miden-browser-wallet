@@ -1,5 +1,5 @@
 import { RPC_ENDPOINT } from "./constants";
-import { sucessTxToast } from "@/components/success-tsx-toast";
+import { successTxToast } from "@/components/success-tsx-toast";
 import { FaucetInfo } from "@/store/balance";
 import { submitTransactionWithRetry } from "./helper";
 
@@ -89,7 +89,7 @@ export async function importNote(noteBytes: any, receiver: string) {
       client,
       Address.fromBech32(receiver).accountId(),
     );
-    sucessTxToast("Received note successfully 🚀", digest);
+    successTxToast("Received note successfully 🚀", digest);
   } catch (error) {
     console.error("Error importing private note:", error);
   } finally {

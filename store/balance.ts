@@ -7,7 +7,7 @@ import {
 } from "@/lib/constants";
 import axios from "axios";
 import { create } from "zustand";
-import { sucessTxToast } from "@/components/success-tsx-toast";
+import { successTxToast } from "@/components/success-tsx-toast";
 import { toast } from "sonner";
 import { submitTransactionWithRetry } from "@/lib/helper";
 
@@ -109,7 +109,7 @@ export const createBalanceStore = () =>
               newClient,
               accountId,
             );
-            sucessTxToast(`Consumed ${noteIds.length} successfully`, txId);
+            successTxToast(`Consumed ${noteIds.length} successfully`, txId);
           } catch (error) {
             console.error("Error consuming notes:", error);
           } finally {
@@ -130,7 +130,7 @@ export const createBalanceStore = () =>
         const txId = await axios.get(
           FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()),
         );
-        sucessTxToast(
+        successTxToast(
           "Faucet used successfully",
           txId.data.replaceAll(" ", ""),
         );
