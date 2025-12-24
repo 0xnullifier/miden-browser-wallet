@@ -18,7 +18,7 @@ import { TickerDropdown } from "./ticker-dropdown";
 import { FaucetInfo } from "@/store/balance";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
 import { sendToMany } from "@/lib/actions";
-import { sucessTxToast } from "../success-tsx-toast";
+import { successTxToast } from "../success-tsx-toast";
 import { useBalanceStore } from "@/providers/balance-provider";
 import { toast } from "sonner";
 
@@ -125,7 +125,7 @@ export function OneToMany({
           faucet: row.faucetId,
         })),
       );
-      sucessTxToast("One to many payment sent successfully 🚀", txId);
+      successTxToast("One to many payment sent successfully 🚀", txId);
     } catch (error) {
       console.error("Error sending payment:", error);
     } finally {
