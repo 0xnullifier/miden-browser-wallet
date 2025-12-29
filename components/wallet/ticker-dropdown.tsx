@@ -84,7 +84,7 @@ export function TickerDropdown({ selectedTicker, setSelectedTicker }: Props) {
                           <p className="text-[8px] text-[#B8B8B8]">MIDEN</p>
                         </span>
                         <span className="text-[10px]">
-                          {sliceAddress(asset.address)}
+                          {sliceAddress(asset.address || "")}
                         </span>
                       </div>
                     </div>
