@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "../ui/card";
 import { Input } from "../ui/input";
 import { useEffect, useRef, useState } from "react";
 import { send } from "@/lib/actions";
-import { sucessTxToast } from "@/components/success-tsx-toast";
+import { successTxToast } from "@/components/success-tsx-toast";
 import {
   Dialog,
   DialogContent,
@@ -121,7 +121,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         clientRef.current.sendPrivateNote(note, Address.fromBech32(recipient));
         console.log("note sent");
         // setNote(note);
-        // sucessTxToast("Transaction sent successfully", tx);
+        // successTxToast("Transaction sent successfully", tx);
         // setNoteBytes(Array.from(note.serialize()));
         // setTx(tx);
       } catch (error) {
@@ -157,7 +157,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
           decimals,
           delegate,
         );
-        sucessTxToast("Transaction sent successfully", tx);
+        successTxToast("Transaction sent successfully", tx);
 
         toast.promise(
           clientRef.current.sendPrivateNote(
@@ -209,7 +209,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         decimals,
         delegate,
       );
-      sucessTxToast("Transaction sent successfully", tx);
+      successTxToast("Transaction sent successfully", tx);
     } catch (error) {
       console.error("Error sending transaction:", error);
       toast.error(

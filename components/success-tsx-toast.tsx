@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
 
-export const sucessTxToast = (message: string, txId: string) => {
+export const successTxToast = (message: string, txId: string) => {
   toast.success(message, {
     position: "top-right",
     action: (
