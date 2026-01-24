@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/icons";
 import { FaucetInfo } from "@/store/balance";
 import { numToString } from "@/lib/utils";
+import { useAddress } from "@/hooks/useAddress";
 export type toShowType = "send" | "activity" | "receive" | "faucet";
 
 interface WalletCardProps {
@@ -64,13 +65,7 @@ export function WalletCard({
   toShow,
 }: WalletCardProps) {
   const [copied, setCopied] = useState(false);
-  const [address, setAddress] = useState<string>("");
-  const account = useMidenSdkStore((state) => state.account);
-  useEffect(() => {
-    if (account) {
-      setAddress(account);
-    }
-  }, [account]);
+  const { address } = useAddress();
   return (
     <div>
       <div className="w-full h-10 bg-primary flex items-center justify-center rounded-[10px] mb-4">

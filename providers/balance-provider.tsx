@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { type ReactNode, createContext, useRef, useContext } from "react";
 import { useStore } from "zustand";
 import { type BalanceState, createBalanceStore } from "@/store/balance";
-import { PRIVATE_NOTE_TRANSPORT_URL, RPC_ENDPOINT } from "@/lib/constants";
+import {
+  NETWORK_TO_NOTE_TRANSPORT_ENDPOINT,
+  NETWORK_TO_RPC_ENDPOINT,
+  PRIVATE_NOTE_TRANSPORT_URL,
+  RPC_ENDPOINT,
+} from "@/lib/constants";
 import { useMidenSdkStore } from "./sdk-provider";
 
 export type Balancestore = ReturnType<typeof createBalanceStore>;
@@ -48,13 +53,14 @@ export const useObserveBalance = () => {
   const account = useMidenSdkStore((state) => state.account);
   const loadBalance = useBalanceStore((state) => state.loadBalance);
   const [client, setClient] = useState<any | null>(null);
-
+  const network = useMidenSdkStore((state) => state.networkType);
   useEffect(() => {
     const initClient = async () => {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
+      ///@ts-ignore
       const clientInstance = await WebClient.createClient(
-        RPC_ENDPOINT,
-        PRIVATE_NOTE_TRANSPORT_URL,
+        NETWORK_TO_RPC_ENDPOINT.get(network),
+        NETWORK_TO_NOTE_TRANSPORT_ENDPOINT.get(network),
       );
       setClient(clientInstance);
     };
@@ -65,7 +71,7 @@ export const useObserveBalance = () => {
       }
       setClient(null);
     };
-  }, []);
+  }, [network]);
 
   useEffect(() => {
     if (!client || !account) {
@@ -74,6 +80,6 @@ export const useObserveBalance = () => {
       );
       return;
     }
-    loadBalance(client, account);
-  }, [client, blockNum, account]);
+    loadBalance(client, account, network);
+  }, [client, blockNum, account, network]);
 };

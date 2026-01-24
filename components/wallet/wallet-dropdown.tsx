@@ -59,7 +59,8 @@ export function WalletDropdown() {
       console.error("No account found to export private key");
       return;
     }
-    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
+    ///@ts-ignore
     const client = await WebClient.createClient(RPC_ENDPOINT);
 
     try {
@@ -98,8 +99,9 @@ export function WalletDropdown() {
 
   const importAccount = async () => {
     const { WebClient, Address, AccountInterface, AccountFile } = await import(
-      "@demox-labs/miden-sdk"
+      "@miden-sdk/miden-sdk"
     );
+    ///@ts-ignore
     const client = await WebClient.createClient(RPC_ENDPOINT);
     setImportLoading(true);
     if (!importStr || importStr.length === 0) {
@@ -114,7 +116,6 @@ export function WalletDropdown() {
       indexedDB.deleteDatabase("MidenClientDB");
       const b64AccountString = importStr.split(":")[0];
       const newAccountId = importStr.split(":")[1];
-      console.log(newAccountId);
       const byteArray = Uint8Array.from(atob(b64AccountString), (c) =>
         c.charCodeAt(0),
       );

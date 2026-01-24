@@ -2,7 +2,7 @@ export const INIT_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443
 
 async function fnThatUsesClient(){
     // dynamic import the sdk as this runs the wasm worker
-    const { WebClient } = await import("@demox-labs/miden-sdk");
+    const { WebClient } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
 
     // now you can interact with the client
@@ -21,7 +21,7 @@ async function createAccount() {
     const { 
         WebClient, 
         AccountStorageMode 
-    } = await import("@demox-labs/miden-sdk");
+    } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
 
     // create a new private account
@@ -44,7 +44,7 @@ export const FETCH_ACCOUNT_CODE = `const RPC_ENDPOINT = "https://rpc.testnet.mid
 
 async function fetchAccount() {
     // imports and init the client
-    const { WebClient, AccountId } = await import("@demox-labs/miden-sdk");
+    const { WebClient, AccountId } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
 
     // fetch the account from local storage or index db
@@ -73,7 +73,7 @@ async function createFaucet() {
     const { 
         WebClient, 
         AccountStorageMode 
-    } = await import("@demox-labs/miden-sdk");
+    } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
 
     // create a new asset and the faucet account
@@ -106,7 +106,7 @@ async function mintTokens(mintTo: string) {
         WebClient, 
         AccountId,
         TransactionProver
-    } = await import("@demox-labs/miden-sdk");
+    } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
     // create a new remote prover this reduces the load on the client
     // as the proving operation for a transaction is heavy 
@@ -137,7 +137,7 @@ export const SETUP = `const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443"; /
 
 async function setup() {
     // imports and init the client
-    const { WebClient, AccountStorageMode } = await import("@demox-labs/miden-sdk");
+    const { WebClient, AccountStorageMode } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
 
     // create a new account
@@ -173,7 +173,7 @@ async function consumeTokens() {
         WebClient,
         AccountId,
         TransactionProver,
-    } = await import("@demox-labs/miden-sdk");
+    } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
     const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
 
@@ -217,7 +217,7 @@ async function sendTokens(
         AccountId,
         TransactionProver,
         NoteType
-    } = await import("@demox-labs/miden-sdk");
+    } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
     const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
 
@@ -277,7 +277,7 @@ async function unauthNotesExample(
         TransactionRequestBuilder,
         Word,
         Felt
-    } = await import("@demox-labs/miden-sdk");
+    } = await import("@miden-sdk/miden-sdk");
     const client = await WebClient.createClient(RPC_ENDPOINT);
     const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
 

@@ -4,17 +4,20 @@ import {
   ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12,
   MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
   NETWORK_ID,
+  NETWORK_TO_RPC_ENDPOINT,
   RPC_ENDPOINT,
 } from "@/lib/constants";
+import { Network } from "@/lib/types";
 import axios from "axios";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 export interface MidenSdkConfig {
-  endpoint?: string;
+  networkType: Network;
 }
 
 export interface MidenSdkState {
+  networkType: Network | null;
   isLoading: boolean;
   error: string | null;
   blockNum: number;
@@ -28,6 +31,7 @@ export interface MidenSdkActions {
   initializeAccount: (client: any) => Promise<void>;
   createNewAccount: () => Promise<any>;
   setAccount: (account: string) => void;
+  setNetworkType: (network: Network) => void;
 }
 
 export type MidenSdkStore = MidenSdkState & MidenSdkActions;
@@ -37,11 +41,22 @@ export const createMidenSdkStore = () =>
     immer((set, get) => ({
       isLoading: false,
       error: null,
-      config: { endpoint: RPC_ENDPOINT },
+      networkType: null,
+      config: {
+        networkType: null,
+      },
       blockNum: 0,
       account: "",
 
+      setNetworkType: (networkType: Network) => {
+        localStorage.setItem("networkType", networkType);
+        set((state) => {
+          state.networkType = networkType;
+        });
+      },
+
       setAccount: (account: string) => {
+        localStorage.setItem(MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY, account);
         set((state) => {
           state.account = account;
         });
@@ -63,8 +78,11 @@ export const createMidenSdkStore = () =>
         });
 
         try {
-          const { WebClient } = await import("@demox-labs/miden-sdk");
-          const client = await WebClient.createClient(RPC_ENDPOINT);
+          const { WebClient } = await import("@miden-sdk/miden-sdk");
+          ///@ts-ignore
+          const client = await WebClient.createClient(
+            NETWORK_TO_RPC_ENDPOINT.get(config.networkType),
+          );
           set((state) => {
             state.error = null;
           });
@@ -101,12 +119,7 @@ export const createMidenSdkStore = () =>
         }
       },
 
-      syncState: async (client: any) => {
-        if (!client) {
-          console.warn("Cannot sync state: client not initialized");
-          return;
-        }
-
+      syncState: async (client: import("@miden-sdk/miden-sdk").WebClient) => {
         try {
           const value = await client.syncState();
           set((state) => {
@@ -122,14 +135,13 @@ export const createMidenSdkStore = () =>
         }
       },
 
-      initializeAccount: async (client: any) => {
+      initializeAccount: async (
+        client: import("@miden-sdk/miden-sdk").WebClient,
+      ) => {
         const { setAccount, error } = get();
 
         const { AccountStorageMode, WebClient, AccountInterface, Address } =
-          await import("@demox-labs/miden-sdk");
-        if (!(client instanceof WebClient)) {
-          throw new Error("Miden SDK client not initialized");
-        }
+          await import("@miden-sdk/miden-sdk");
         const accountID = localStorage.getItem(
           MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY,
         );
@@ -184,10 +196,12 @@ export const createMidenSdkStore = () =>
 
       createNewAccount: async () => {
         const { WebClient, AccountStorageMode } = await import(
-          "@demox-labs/miden-sdk"
+          "@miden-sdk/miden-sdk"
         );
         const NID = await NETWORK_ID();
-        const client = await WebClient.createClient(RPC_ENDPOINT);
+        const client = new WebClient();
+        await client.createClient(RPC_ENDPOINT);
+        //
         const { setAccount } = get();
         if (!client) {
           throw new Error(

@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { RotatingBlock } from "@/components/ui/rotating-block";
 import { useMidenSdkStore } from "@/providers/sdk-provider";
-import { Github } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { GITHUB_FEEDBACK_URL } from "@/lib/constants";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown";
+import { Button } from "./ui/button";
+import { Network } from "@/lib/types";
+import { ChevronDown } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "WALLET", href: "/" },
@@ -19,6 +27,8 @@ const NAV_ITEMS = [
 
 export function Navbar() {
   const blockNum = useMidenSdkStore((state) => state.blockNum);
+  const network = useMidenSdkStore((state) => state.networkType);
+  const setNetworkId = useMidenSdkStore((state) => state.setNetworkType);
   return (
     <header className="w-full sticky top-0 z-50 bg-background">
       <div className="max-w-6xl mx-auto px-4 py-4 md:px-6 md:py-6">
@@ -105,6 +115,30 @@ export function Navbar() {
             </nav>
 
             <div className="flex gap-5 items-center min-w-[48px] justify-end ml-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="rounded-none bg-primary/90 text-primary border-border border-[0.5px] hover:bg-primary-foreground/90 hover:text-primary text-sm">
+                    {network}
+                    <ChevronDown className="h-6 w-6" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="bg-primary-foreground w-20"
+                  align="start"
+                >
+                  {Object.keys(Network).map((net) => (
+                    <DropdownMenuItem
+                      key={net}
+                      onSelect={() => {
+                        setNetworkId(Network[net as keyof typeof Network]);
+                      }}
+                      className="rounded-none cursor-pointer focus:outline-none focus:bg-primary-foreground focus:text-primary"
+                    >
+                      {Network[net as keyof typeof Network]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <svg

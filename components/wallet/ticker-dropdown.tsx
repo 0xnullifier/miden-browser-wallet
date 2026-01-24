@@ -66,7 +66,6 @@ export function TickerDropdown({ selectedTicker, setSelectedTicker }: Props) {
           <div className="">
             {faucetInfo.slice(0, displayedItems).map((asset, index) => {
               if (balances[asset.address] === undefined) {
-                console.log(balances[asset.address]);
                 return null;
               }
               return (

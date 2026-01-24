@@ -2,6 +2,7 @@ import {
   DECIMALS,
   FAUCET_API_ENDPOINT,
   FAUCET_ID,
+  NETWORK_TO_RPC_ENDPOINT,
   RPC_ENDPOINT,
   TX_PROVER_ENDPOINT,
 } from "@/lib/constants";
@@ -10,6 +11,7 @@ import { create } from "zustand";
 import { sucessTxToast } from "@/components/success-tsx-toast";
 import { toast } from "sonner";
 import { submitTransactionWithRetry } from "@/lib/helper";
+import { Network } from "@/lib/types";
 
 export interface FaucetInfo {
   symbol: string;
@@ -25,8 +27,16 @@ export interface BalanceState {
   balances: {
     [key: string]: number;
   };
-  loadBalance: (client: any, accountId: string) => Promise<void>;
-  faucet: (accountId: string, amount: number) => Promise<void>;
+  loadBalance: (
+    client: import("@miden-sdk/miden-sdk").WebClient,
+    accountId: string,
+    network: Network,
+  ) => Promise<void>;
+  faucet: (
+    accountId: string,
+    amount: number,
+    network: Network,
+  ) => Promise<void>;
 }
 
 export const createBalanceStore = () =>
@@ -42,10 +52,9 @@ export const createBalanceStore = () =>
         address: FAUCET_ID,
       },
     ],
-    loadBalance: async (client, _accountId) => {
-      const { Address, WebClient } = await import("@demox-labs/miden-sdk");
+    loadBalance: async (client, _accountId, network) => {
+      const { Address, WebClient } = await import("@miden-sdk/miden-sdk");
       if (client instanceof WebClient) {
-        console.log(_accountId);
         const address = Address.fromBech32(_accountId);
         const accountId = address.accountId();
         const { faucets, consumingLoading } = get();
@@ -64,7 +73,6 @@ export const createBalanceStore = () =>
               let tokenInfo = faucets.find(
                 (faucet) => faucet.address === asset.faucetId().toString(),
               );
-              console.log(asset);
               if (!tokenInfo) {
                 tokenInfo = await getTokenInfo(asset.faucetId().toString());
                 set((state) => ({
@@ -89,8 +97,11 @@ export const createBalanceStore = () =>
         } else if (!consumingLoading) {
           set({ consumingLoading: true });
           // if consumable notes are found we consume them but terminate the client after consuming
-          const { WebClient } = await import("@demox-labs/miden-sdk");
-          const newClient = await WebClient.createClient(RPC_ENDPOINT);
+          const { WebClient } = await import("@miden-sdk/miden-sdk");
+          //@ts-ignore
+          const newClient = await WebClient.createClient(
+            NETWORK_TO_RPC_ENDPOINT.get(network),
+          );
           try {
             toast.info(
               `Found ${consumableNotes.length} pending notes to consume, consuming...`,
@@ -98,22 +109,20 @@ export const createBalanceStore = () =>
                 position: "top-right",
               },
             );
-            const noteIds = consumableNotes.map((note: any) =>
-              note.inputNoteRecord().id().toString(),
+            const notes = consumableNotes.map((note) =>
+              note.inputNoteRecord().toNote(),
             );
-            console.log("Consuming notes with IDs:", noteIds);
             const consumeTxRequest =
-              newClient.newConsumeTransactionRequest(noteIds);
+              newClient.newConsumeTransactionRequest(notes);
             const txId = await submitTransactionWithRetry(
               consumeTxRequest,
               newClient,
               accountId,
             );
-            sucessTxToast(`Consumed ${noteIds.length} successfully`, txId);
+            sucessTxToast(`Consumed ${notes.length} successfully`, txId);
           } catch (error) {
             console.error("Error consuming notes:", error);
           } finally {
-            console.log("Terminating client after consuming pending notes");
             set({ consumingLoading: false });
             newClient.terminate();
           }
@@ -121,14 +130,14 @@ export const createBalanceStore = () =>
       }
     },
 
-    faucet: async (accountId, amount) => {
+    faucet: async (accountId, amount, network) => {
       set({ faucetLoading: true });
       try {
         const amountInBaseDenom = BigInt(
           Math.trunc(Number(amount) * 10 ** DECIMALS),
         );
         const txId = await axios.get(
-          FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString()),
+          FAUCET_API_ENDPOINT(accountId, amountInBaseDenom.toString(), network),
         );
         sucessTxToast(
           "Faucet used successfully",
@@ -155,8 +164,9 @@ export const createBalanceStore = () =>
   }));
 
 const getTokenInfo = async (id: string) => {
-  const { AccountId, WebClient } = await import("@demox-labs/miden-sdk");
+  const { AccountId, WebClient } = await import("@miden-sdk/miden-sdk");
   const accountId = AccountId.fromHex(id);
+  //@ts-ignore
   const client = await WebClient.createClient(RPC_ENDPOINT);
   let tokenAcc = await client.getAccount(accountId);
   if (!tokenAcc) {

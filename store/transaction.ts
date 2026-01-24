@@ -34,7 +34,7 @@ function transactionRecordToUITransaction({
   inputNotes,
 }: {
   tr: any;
-  inputNotes: import("@demox-labs/miden-sdk").InputNoteRecord[] | undefined;
+  inputNotes: import("@miden-sdk/miden-sdk").InputNoteRecord[] | undefined;
 }): UITransaction[] {
   if (inputNotes === undefined || inputNotes.length === 0) {
     const outputNotes = tr

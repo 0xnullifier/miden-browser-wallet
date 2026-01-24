@@ -1,3 +1,5 @@
+import { Network } from "./types";
+
 const devnet = process.env.NEXT_PUBLIC_CHAIN === "devnet"; // if deploying in devnet turn to true
 export const BASE_API_URL =
   process.env.NODE_ENV == "development"
@@ -8,9 +10,13 @@ export const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID;
 export const DECIMALS = 8;
 export const RPC_ENDPOINT = devnet
   ? "https://rpc.devnet.miden.io:443"
-  : "https://rpc.testnet.miden.io:443";
-export const FAUCET_API_ENDPOINT = (address: string, amount: string) =>
-  `${process.env.NODE_ENV === "development" ? "http://localhost:9090" : BASE_API_URL}/mint/${address}/${amount}`;
+  : "http://localhost:57291";
+export const FAUCET_API_ENDPOINT = (
+  address: string,
+  amount: string,
+  network: Network,
+) =>
+  `${process.env.NODE_ENV === "development" ? "http://localhost:9090" : BASE_API_URL}/mint/${network}/${address}/${amount}`;
 export const EXPLORER_URL = (txId: string) =>
   devnet
     ? `https://devnet.midenscan.com/tx/${txId}`
@@ -44,7 +50,21 @@ export const ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12 =
 export const GITHUB_FEEDBACK_URL =
   "https://github.com/0xnullifier/miden-browser-wallet/issues/new?template=feedback.md";
 export const NETWORK_ID = async () => {
-  const { NetworkId } = await import("@demox-labs/miden-sdk");
-  return devnet ? NetworkId.Devnet : NetworkId.Testnet;
+  const { NetworkId } = await import("@miden-sdk/miden-sdk");
+  return devnet ? NetworkId.devnet() : NetworkId.custom("mlcl");
 };
 export const PRIVATE_NOTE_TRANSPORT_URL = "https://transport.miden.io";
+
+export const NETWORK_TO_NOTE_TRANSPORT_ENDPOINT: Map<Network, string> = new Map(
+  [
+    [Network.Devnet, "https://transport.devnet.miden.io"],
+    [Network.Testnet, "https://transport.miden.io"],
+    [Network.Localnet, "http://localhost:57292"],
+  ],
+);
+
+export const NETWORK_TO_RPC_ENDPOINT: Map<Network, string> = new Map([
+  [Network.Devnet, "https://rpc.devnet.miden.io:443"],
+  [Network.Testnet, "https://rpc.testnet.miden.io:443"],
+  [Network.Localnet, "http://localhost:57291"],
+]);

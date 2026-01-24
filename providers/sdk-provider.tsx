@@ -5,6 +5,7 @@ import { type ReactNode, createContext, useRef, useContext } from "react";
 import { useStore } from "zustand";
 import { type MidenSdkStore, createMidenSdkStore } from "@/store/sdk";
 import { RPC_ENDPOINT } from "@/lib/constants";
+import { Network } from "@/lib/types";
 
 export type MidenSdkStoreApi = ReturnType<typeof createMidenSdkStore>;
 
@@ -48,17 +49,22 @@ export function useInitAndPollSyncState() {
   const syncState = useMidenSdkStore((state) => state.syncState);
   const initializeSdk = useMidenSdkStore((state) => state.initializeSdk);
   const [client, setClient] = useState<any | null>(null);
-
+  const network = useMidenSdkStore((state) => state.networkType);
+  const setNetworkType = useMidenSdkStore((state) => state.setNetworkType);
   useEffect(() => {
-    initializeSdk({});
+    initializeSdk({
+      networkType:
+        (localStorage.getItem("networkType") as Network) || Network.Testnet,
+    });
 
     const initClient = async () => {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
+      ///@ts-ignore
       const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
       setClient(clientInstance);
     };
     initClient();
-  }, []);
+  }, [network]);
 
   useEffect(() => {
     if (client) {
@@ -67,6 +73,9 @@ export function useInitAndPollSyncState() {
   }, [tick, client, syncState]);
 
   useEffect(() => {
+    setNetworkType(
+      (localStorage.getItem("networkType") as Network) || Network.Testnet,
+    );
     const intervalId = setInterval(
       () => setTick((tick) => tick + 1),
       tickInterval,

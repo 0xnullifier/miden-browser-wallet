@@ -19,6 +19,8 @@ import {
   BASE_URL,
   DECIMALS,
   GITHUB_FEEDBACK_URL,
+  NETWORK_TO_NOTE_TRANSPORT_ENDPOINT,
+  NETWORK_TO_RPC_ENDPOINT,
   PRIVATE_NOTE_TRANSPORT_URL,
   RPC_ENDPOINT,
 } from "@/lib/constants";
@@ -35,6 +37,7 @@ import { FaucetInfo } from "@/store/balance";
 export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [message, setMessage] = useState("");
   const [isOneToMany, setIsOneToMany] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const balances = useBalanceStore((state) => state.balances);
   const balance = balances[selectedFaucet.address];
   const decimals = selectedFaucet.decimals || DECIMALS;
-
+  const network = useMidenSdkStore((state) => state.networkType);
   const [receiverOfflineDialogOpen, setReceiverOfflineDialog] = useState(false);
   const clientRef = useRef<any | null>(null);
 
@@ -105,7 +108,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const processTxAfterConnection = async () => {
     if (!account) return;
-    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
     if (clientRef.current instanceof WebClient) {
       try {
         const { tx, note } = await send(
@@ -116,6 +119,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
           isPrivate,
           selectedFaucet.address,
           decimals,
+          "",
           delegate,
         );
         clientRef.current.sendPrivateNote(note, Address.fromBech32(recipient));
@@ -144,7 +148,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const sendPrivateTx = async () => {
     if (!account) return;
-    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
     if (clientRef.current instanceof WebClient) {
       try {
         const { tx, note } = await send(
@@ -155,6 +159,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
           isPrivate,
           selectedFaucet.address,
           decimals,
+          "",
           delegate,
         );
         sucessTxToast("Transaction sent successfully", tx);
@@ -207,6 +212,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         isPrivate,
         selectedFaucet.address,
         decimals,
+        "",
         delegate,
       );
       sucessTxToast("Transaction sent successfully", tx);
@@ -323,10 +329,11 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const onSend = async () => {
     setLoading(true);
-    const { WebClient } = await import("@demox-labs/miden-sdk");
+    const { WebClient } = await import("@miden-sdk/miden-sdk");
+    ///@ts-ignore
     clientRef.current = await WebClient.createClient(
-      RPC_ENDPOINT,
-      PRIVATE_NOTE_TRANSPORT_URL,
+      NETWORK_TO_RPC_ENDPOINT.get(network),
+      NETWORK_TO_NOTE_TRANSPORT_ENDPOINT.get(network),
     );
     if (recipient === account) {
       toast.error("You cannot send payment to yourself");
@@ -373,9 +380,12 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const downloadNote = async () => {
     setDownloadLoading(true);
-    const { WebClient, Note } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Note } = await import("@miden-sdk/miden-sdk");
     if (!note) return;
-    const client = await WebClient.createClient(RPC_ENDPOINT);
+    ///@ts-ignore
+    const client = await WebClient.createClient(
+      NETWORK_TO_RPC_ENDPOINT.get(network),
+    );
     try {
       await new Promise((resolve) => setTimeout(resolve, 10000));
       const noteBytes = (

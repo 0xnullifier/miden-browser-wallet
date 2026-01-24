@@ -16,14 +16,14 @@ export function Faucet({ onClose }: { onClose: () => void }) {
   const faucet = useBalanceStore((state) => state.faucet);
   const faucetLoading = useBalanceStore((state) => state.faucetLoading);
   const account = useMidenSdkStore((store) => store.account);
-
+  const network = useMidenSdkStore((store) => store.networkType);
   const onMint = async () => {
     if (!account) {
       console.error("No account found for faucet request");
       return;
     }
     if (amount) {
-      await faucet(account, parseFloat(amount));
+      await faucet(account, parseFloat(amount), network);
     }
   };
   return (

@@ -37,3 +37,9 @@ export interface BackendTransaction {
     note_aux: string;
   };
 }
+
+export enum Network {
+  Testnet = "testnet",
+  Devnet = "devnet",
+  Localnet = "localnet",
+}

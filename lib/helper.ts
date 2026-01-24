@@ -1,50 +1,36 @@
 import { TX_PROVER_ENDPOINT } from "@/lib/constants";
 
 export async function submitTransactionWithRetry(
-  transactionRequest: any,
-  client: any,
-  accountId: any,
+  transactionRequest: import("@miden-sdk/miden-sdk").TransactionRequest,
+  client: import("@miden-sdk/miden-sdk").WebClient,
+  accountId: import("@miden-sdk/miden-sdk").AccountId,
   delegate: boolean = true,
 ) {
-  const { TransactionRequest, WebClient, AccountId, TransactionProver } =
-    await import("@demox-labs/miden-sdk");
+  const { TransactionProver } = await import("@miden-sdk/miden-sdk");
   const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
-  // just to get types
-  if (
-    transactionRequest instanceof TransactionRequest &&
-    client instanceof WebClient &&
-    accountId instanceof AccountId
-  ) {
-    const executedTransaction = await client.executeTransaction(
-      accountId,
-      transactionRequest,
-    );
-    let provenTx: any;
-    if (delegate) {
-      try {
-        provenTx = await client.proveTransaction(executedTransaction, prover);
-      } catch (error) {
-        console.log("proving locally");
-        // prover failed prove locally
-        provenTx = await client.proveTransaction(
-          executedTransaction,
-          TransactionProver.newLocalProver(),
-        );
-      }
-    } else {
-      // do not delegate
-      provenTx = await client.proveTransaction(
-        executedTransaction,
+  if (delegate) {
+    try {
+      const txId = await client.submitNewTransactionWithProver(
+        accountId,
+        transactionRequest,
+        prover,
+      );
+      return txId.toHex();
+    } catch (error) {
+      // prover failed prove locally
+      const txId = await client.submitNewTransactionWithProver(
+        accountId,
+        transactionRequest,
         TransactionProver.newLocalProver(),
       );
+      return txId.toHex();
     }
-    console.log(provenTx);
-    const submissionHeight = await client.submitProvenTransaction(
-      provenTx,
-      executedTransaction,
+  } else {
+    const txId = await client.submitNewTransactionWithProver(
+      accountId,
+      transactionRequest,
+      TransactionProver.newLocalProver(),
     );
-    console.log(submissionHeight);
-    await client.applyTransaction(executedTransaction, submissionHeight);
-    return executedTransaction.id().toHex();
+    return txId.toHex();
   }
 }

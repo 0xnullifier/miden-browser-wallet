@@ -149,7 +149,8 @@ export function ActivityCardList() {
 
   useEffect(() => {
     const initClient = async () => {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
+      ///@ts-ignore
       const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
       clientInstance.terminate();
       clientRef.current = clientInstance;
@@ -174,7 +175,7 @@ export function ActivityCardList() {
     const fetchTransactions = async () => {
       try {
         const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } =
-          await import("@demox-labs/miden-sdk");
+          await import("@miden-sdk/miden-sdk");
         if (clientRef.current instanceof WebClient) {
           const allTransactions = await clientRef.current.getTransactions(
             TransactionFilter.all(),
@@ -218,7 +219,6 @@ export function ActivityCardList() {
       const dateB = new Date(b);
       return dateB.getTime() - dateA.getTime();
     });
-    console.log(sorted);
     const dateOffset = 34;
 
     if (transactions[sorted[0]].length < 3) {

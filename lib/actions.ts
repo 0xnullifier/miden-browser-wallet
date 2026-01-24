@@ -11,6 +11,7 @@ export async function send(
   isPrivate: boolean,
   faucetId: string,
   decimals: number,
+  message?: string,
   delegate?: boolean,
 ) {
   const {
@@ -21,11 +22,12 @@ export async function send(
     Note,
     NoteAssets,
     FungibleAsset,
-    Felt,
     TransactionRequestBuilder,
     MidenArrays,
     OutputNote,
-  } = await import("@demox-labs/miden-sdk");
+    NoteAttachment,
+    NoteAttachmentScheme,
+  } = await import("@miden-sdk/miden-sdk");
   if (client instanceof WebClient) {
     const noteType = isPrivate ? NoteType.Private : NoteType.Public;
     const FAUCET_ID = AccountId.fromHex(faucetId);
@@ -35,26 +37,23 @@ export async function send(
     const noteAssets = new NoteAssets([
       new FungibleAsset(FAUCET_ID, amountInBaseDenom),
     ]);
+    const messageAttachment = message
+      ? NoteAttachment.newArray(
+          NoteAttachmentScheme.none(),
+          await messageToFeltArray(message),
+        )
+      : NoteAttachment.newWord(NoteAttachmentScheme.none(), await emptyWord());
     const p2idNote = Note.createP2IDNote(
       accountId,
       toAccountId,
       noteAssets,
       noteType,
-      new Felt(BigInt(0)),
+      messageAttachment,
     );
-    console.log("p2id note", p2idNote.id().toString());
-    console.log("p2id note", p2idNote.assets().fungibleAssets()[0].amount());
     const outputP2ID = OutputNote.full(p2idNote);
     let sendTxRequest = new TransactionRequestBuilder()
       .withOwnOutputNotes(new MidenArrays.OutputNoteArray([outputP2ID]))
       .build();
-    console.log(
-      sendTxRequest
-        .expectedOutputOwnNotes()[0]
-        .assets()
-        .fungibleAssets()[0]
-        .amount(),
-    );
     let txResult = await submitTransactionWithRetry(
       sendTxRequest,
       client,
@@ -73,15 +72,15 @@ export async function importNote(noteBytes: any, receiver: string) {
     NoteAndArgs,
     NoteAndArgsArray,
     TransactionRequestBuilder,
-  } = await import("@demox-labs/miden-sdk");
-  const client = await WebClient.createClient(RPC_ENDPOINT);
+  } = await import("@miden-sdk/miden-sdk");
+  const client = new WebClient();
+  client.createClient(RPC_ENDPOINT);
   try {
-    console.log("Importing note for receiver:", receiver);
     const p2idNote = Note.deserialize(noteBytes);
     const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
 
     const consumeRequest = new TransactionRequestBuilder()
-      .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
+      .withInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
       .build();
 
     const digest = await submitTransactionWithRetry(
@@ -98,8 +97,9 @@ export async function importNote(noteBytes: any, receiver: string) {
 }
 
 export async function importNoteFile(noteBytes: any) {
-  const { NoteFile, WebClient } = await import("@demox-labs/miden-sdk");
-  const client = await WebClient.createClient(RPC_ENDPOINT);
+  const { NoteFile, WebClient } = await import("@miden-sdk/miden-sdk");
+  const client = new WebClient();
+  client.createClient(RPC_ENDPOINT);
   try {
     const prevCount = (await client.getConsumableNotes()).length;
     let afterCount = prevCount;
@@ -108,10 +108,8 @@ export async function importNoteFile(noteBytes: any) {
     while (afterCount !== prevCount + 1 && retryNumber < 5) {
       await client.importNoteFile(NoteFile.deserialize(noteBytes));
       afterCount = (await client.getConsumableNotes()).length;
-      console.log("Trying to import, number:", retryNumber);
       retryNumber += 1;
     }
-    console.log(afterCount);
   } catch (error) {
     console.error("Error importing private note:", error);
   } finally {
@@ -136,9 +134,17 @@ export async function sendToMany(
     OutputNote,
     MidenArrays,
     TransactionRequestBuilder,
+    NoteAttachment,
+    NoteAttachmentScheme,
     TransactionProver,
-  } = await import("@demox-labs/miden-sdk");
-  const client = await WebClient.createClient(RPC_ENDPOINT);
+  } = await import("@miden-sdk/miden-sdk");
+  const client = new WebClient();
+  client.createClient(RPC_ENDPOINT);
+
+  const emptyNoteAttachment = NoteAttachment.newWord(
+    NoteAttachmentScheme.none(),
+    await emptyWord(),
+  );
   try {
     const senderAccountId = Address.fromBech32(sender).accountId();
     const notes = new MidenArrays.OutputNoteArray(
@@ -154,7 +160,7 @@ export async function sendToMany(
           toAccountId,
           noteAssets,
           NoteType.Public,
-          new Felt(BigInt(0)),
+          emptyNoteAttachment,
         );
         return OutputNote.full(p2idNote);
       }),
@@ -177,3 +183,33 @@ export async function sendToMany(
     client.terminate();
   }
 }
+
+export const messageToFeltArray = async (
+  message: string,
+): Promise<import("@miden-sdk/miden-sdk").FeltArray> => {
+  const { Felt, FeltArray } = await import("@miden-sdk/miden-sdk");
+  // one felt can encode 4 bytes, so we convert each character to its char code and create felts
+  const messageBytes = Array.from(new TextEncoder().encode(message));
+  const felts = [];
+  for (let i = 0; i < messageBytes.length; i += 4) {
+    let feltValue = BigInt(0);
+    for (let j = 0; j < 4; j++) {
+      if (i + j < messageBytes.length) {
+        feltValue += BigInt(messageBytes[i + j]) << BigInt(8 * j);
+      }
+    }
+    felts.push(new Felt(feltValue));
+  }
+  return new FeltArray(felts);
+};
+
+export const emptyWord = async () => {
+  const { Word, Felt } = await import("@miden-sdk/miden-sdk");
+  // an empty word is 4 felts of value 0
+  return Word.newFromFelts([
+    new Felt(BigInt(0)),
+    new Felt(BigInt(0)),
+    new Felt(BigInt(0)),
+    new Felt(BigInt(0)),
+  ]);
+};
