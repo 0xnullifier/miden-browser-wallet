@@ -2,6 +2,7 @@ import {
   DECIMALS,
   FAUCET_API_ENDPOINT,
   FAUCET_ID,
+  METADATA_CACHE_KEY,
   RPC_ENDPOINT,
   TX_PROVER_ENDPOINT,
 } from "@/lib/constants";
@@ -43,9 +44,8 @@ export const createBalanceStore = () =>
       },
     ],
     loadBalance: async (client, _accountId) => {
-      const { Address, WebClient } = await import("@demox-labs/miden-sdk");
+      const { Address, WebClient } = await import("@miden-sdk/miden-sdk");
       if (client instanceof WebClient) {
-        console.log(_accountId);
         const address = Address.fromBech32(_accountId);
         const accountId = address.accountId();
         const { faucets, consumingLoading } = get();
@@ -64,7 +64,6 @@ export const createBalanceStore = () =>
               let tokenInfo = faucets.find(
                 (faucet) => faucet.address === asset.faucetId().toString(),
               );
-              console.log(asset);
               if (!tokenInfo) {
                 tokenInfo = await getTokenInfo(asset.faucetId().toString());
                 set((state) => ({
@@ -89,7 +88,7 @@ export const createBalanceStore = () =>
         } else if (!consumingLoading) {
           set({ consumingLoading: true });
           // if consumable notes are found we consume them but terminate the client after consuming
-          const { WebClient } = await import("@demox-labs/miden-sdk");
+          const { WebClient } = await import("@miden-sdk/miden-sdk");
           const newClient = await WebClient.createClient(RPC_ENDPOINT);
           try {
             toast.info(
@@ -98,22 +97,21 @@ export const createBalanceStore = () =>
                 position: "top-right",
               },
             );
-            const noteIds = consumableNotes.map((note: any) =>
-              note.inputNoteRecord().id().toString(),
+            const notes = consumableNotes.map((note) =>
+              note.inputNoteRecord().toNote(),
             );
-            console.log("Consuming notes with IDs:", noteIds);
+            //TODO: open an issue on client note metadata does not have an attachment method
             const consumeTxRequest =
-              newClient.newConsumeTransactionRequest(noteIds);
+              newClient.newConsumeTransactionRequest(notes);
             const txId = await submitTransactionWithRetry(
               consumeTxRequest,
               newClient,
               accountId,
             );
-            sucessTxToast(`Consumed ${noteIds.length} successfully`, txId);
+            sucessTxToast(`Consumed ${notes.length} successfully`, txId);
           } catch (error) {
             console.error("Error consuming notes:", error);
           } finally {
-            console.log("Terminating client after consuming pending notes");
             set({ consumingLoading: false });
             newClient.terminate();
           }
@@ -155,79 +153,35 @@ export const createBalanceStore = () =>
   }));
 
 const getTokenInfo = async (id: string) => {
-  const { AccountId, WebClient } = await import("@demox-labs/miden-sdk");
+  const dump = localStorage.getItem(METADATA_CACHE_KEY);
+  let cache = dump ? JSON.parse(dump) : {};
+  if (cache[id]) {
+    return cache[id];
+  }
+
+  const { AccountId, RpcClient, Endpoint, BasicFungibleFaucetComponent } =
+    await import("@miden-sdk/miden-sdk");
   const accountId = AccountId.fromHex(id);
-  const client = await WebClient.createClient(RPC_ENDPOINT);
-  let tokenAcc = await client.getAccount(accountId);
-  if (!tokenAcc) {
-    await client.importAccountById(accountId);
-    await client.syncState();
-    tokenAcc = await client.getAccount(accountId);
-    if (!tokenAcc) {
-      toast.error("Failed to import token info");
-    }
+  const client = new RpcClient(Endpoint.testnet());
+  const fetchedAccount = await client.getAccountDetails(accountId);
+  const underlyingAccount = fetchedAccount.account();
+  if (!underlyingAccount) {
+    return {
+      symbol: "Unknown",
+      decimals: 0,
+      address: id,
+    };
   }
-  const storageItem = tokenAcc.storage().getItem(2);
-  if (!storageItem) {
-    throw new Error("No storage item at key 0");
-  }
-  const valueWord = storageItem.toHex();
+  const faucetComponent =
+    BasicFungibleFaucetComponent.fromAccount(underlyingAccount);
 
-  const hex = valueWord.slice(2); // Remove '0x' prefix
-  const reversed = hex.match(/.{2}/g)!.reverse(); // Split into pairs and reverse them
-
-  // Create an array of 4 elements, each 32 bits (4 bytes) in size
-  const array = [];
-  for (let i = 0; i < 4; i++) {
-    const startIndex = i * 8; // Each element is 8 hex digits (4 bytes)
-    const slice = reversed.slice(startIndex, startIndex + 8).join(""); // Join pairs for each element
-    array.push(parseInt(slice, 16)); // Convert the slice from hex to a number
-  }
-
-  let val = array[1];
-  let symbol = decodeFeltToSymbol(val);
-
-  let decimals = array[2];
-  return {
-    symbol,
-    decimals,
+  const metadata = {
+    symbol: faucetComponent.symbol().toString(),
+    decimals: faucetComponent.decimals(),
     address: id,
   };
+
+  cache = { ...cache, [id]: metadata };
+  localStorage.setItem(METADATA_CACHE_KEY, JSON.stringify(cache));
+  return metadata;
 };
-
-const TokenSymbol = {
-  MAX_ENCODED_VALUE: 0xffffffffffff, // Example max value
-  ALPHABET_LENGTH: 26, // A-Z (26 letters)
-  MAX_SYMBOL_LENGTH: 10, // Example maximum length for token symbols
-};
-
-function decodeFeltToSymbol(encodedFelt: number): string | string {
-  // Check if the encoded value is within the valid range
-  if (encodedFelt > TokenSymbol.MAX_ENCODED_VALUE) {
-    return `Error: Value ${encodedFelt} is too large`;
-  }
-
-  let decodedString = "";
-  let remainingValue = encodedFelt;
-
-  // Get the token symbol length
-  const tokenLen = remainingValue % TokenSymbol.ALPHABET_LENGTH;
-  if (tokenLen === 0 || tokenLen > TokenSymbol.MAX_SYMBOL_LENGTH) {
-    return `Error: Invalid token length: ${tokenLen}`;
-  }
-  remainingValue = Math.floor(remainingValue / TokenSymbol.ALPHABET_LENGTH);
-
-  for (let i = 0; i < tokenLen; i++) {
-    const digit = remainingValue % TokenSymbol.ALPHABET_LENGTH;
-    const char = String.fromCharCode(digit + 65); // 'A' is 65 in ASCII
-    decodedString = char + decodedString; // Insert at the start to reverse the order
-    remainingValue = Math.floor(remainingValue / TokenSymbol.ALPHABET_LENGTH);
-  }
-
-  // Return an error if some data still remains after specified number of characters
-  if (remainingValue !== 0) {
-    return "Error: Data not fully decoded";
-  }
-
-  return decodedString;
-}

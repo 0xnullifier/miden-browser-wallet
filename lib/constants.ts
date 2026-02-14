@@ -7,8 +7,8 @@ export const MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY = "miden-web-wallet-v11.1.0";
 export const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID;
 export const DECIMALS = 8;
 export const RPC_ENDPOINT = devnet
-  ? "https://rpc.devnet.miden.io:443"
-  : "https://rpc.testnet.miden.io:443";
+  ? "https://rpc.devnet.miden.io"
+  : "https://rpc.testnet.miden.io";
 export const FAUCET_API_ENDPOINT = (address: string, amount: string) =>
   `${process.env.NODE_ENV === "development" ? "http://localhost:9090" : BASE_API_URL}/mint/${address}/${amount}`;
 export const EXPLORER_URL = (txId: string) =>
@@ -44,7 +44,8 @@ export const ERROR_THROWN_ON_VERSION_MISMATCH_11_TO_12 =
 export const GITHUB_FEEDBACK_URL =
   "https://github.com/0xnullifier/miden-browser-wallet/issues/new?template=feedback.md";
 export const NETWORK_ID = async () => {
-  const { NetworkId } = await import("@demox-labs/miden-sdk");
-  return devnet ? NetworkId.Devnet : NetworkId.Testnet;
+  const { NetworkId } = await import("@miden-sdk/miden-sdk");
+  return devnet ? NetworkId.devnet() : NetworkId.testnet();
 };
 export const PRIVATE_NOTE_TRANSPORT_URL = "https://transport.miden.io";
+export const METADATA_CACHE_KEY = "browser-wallet-metadata-cache-v13";

@@ -7,7 +7,7 @@ export async function submitTransactionWithRetry(
   delegate: boolean = true,
 ) {
   const { TransactionRequest, WebClient, AccountId, TransactionProver } =
-    await import("@demox-labs/miden-sdk");
+    await import("@miden-sdk/miden-sdk");
   const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
   // just to get types
   if (

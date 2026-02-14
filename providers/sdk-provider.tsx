@@ -53,7 +53,7 @@ export function useInitAndPollSyncState() {
     initializeSdk({});
 
     const initClient = async () => {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
       const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
       setClient(clientInstance);
     };

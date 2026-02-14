@@ -14,17 +14,17 @@ const packageManagers = [
   {
     id: "npm",
     label: "npm",
-    command: "npm install @demox-labs/miden-sdk",
+    command: "npm install @miden-sdk/miden-sdk",
   },
   {
     id: "yarn",
     label: "yarn",
-    command: "yarn add @demox-labs/miden-sdk",
+    command: "yarn add @miden-sdk/miden-sdk",
   },
   {
     id: "pnpm",
     label: "pnpm",
-    command: "pnpm add @demox-labs/miden-sdk",
+    command: "pnpm add @miden-sdk/miden-sdk",
   },
 ];
 
@@ -104,7 +104,7 @@ export function QuickStart() {
         A few points to keep in mind while using the client:
         <ul className="list-disc pl-4 sm:pl-6 space-y-2 mt-2">
           <li className="text-sm sm:text-base text-wrap leading-relaxed hyphens-auto">
-            Always import {<INLINE_CODE text="@demox-labs/miden-sdk" />}{" "}
+            Always import {<INLINE_CODE text="@miden-sdk/miden-sdk" />}{" "}
             dynamically to ensure the worker and WASM are initialized properly.
           </li>
           <li className="text-sm sm:text-base text-wrap leading-relaxed hyphens-auto">

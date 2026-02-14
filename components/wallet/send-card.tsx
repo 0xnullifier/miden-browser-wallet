@@ -41,6 +41,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const [base64NoteStr, setBase64NoteStr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [note, setNote] = useState<any | null>(null);
+  const [message, setMessage] = useState("");
   const account = useMidenSdkStore((state) => state.account);
   const balances = useBalanceStore((state) => state.balances);
   const balance = balances[selectedFaucet.address];
@@ -105,7 +106,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const processTxAfterConnection = async () => {
     if (!account) return;
-    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
     if (clientRef.current instanceof WebClient) {
       try {
         const { tx, note } = await send(
@@ -116,6 +117,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
           isPrivate,
           selectedFaucet.address,
           decimals,
+          message,
           delegate,
         );
         clientRef.current.sendPrivateNote(note, Address.fromBech32(recipient));
@@ -144,7 +146,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const sendPrivateTx = async () => {
     if (!account) return;
-    const { WebClient, Address } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
     if (clientRef.current instanceof WebClient) {
       try {
         const { tx, note } = await send(
@@ -155,6 +157,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
           isPrivate,
           selectedFaucet.address,
           decimals,
+          message,
           delegate,
         );
         sucessTxToast("Transaction sent successfully", tx);
@@ -207,6 +210,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
         isPrivate,
         selectedFaucet.address,
         decimals,
+        message,
         delegate,
       );
       sucessTxToast("Transaction sent successfully", tx);
@@ -323,7 +327,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const onSend = async () => {
     setLoading(true);
-    const { WebClient } = await import("@demox-labs/miden-sdk");
+    const { WebClient } = await import("@miden-sdk/miden-sdk");
     clientRef.current = await WebClient.createClient(
       RPC_ENDPOINT,
       PRIVATE_NOTE_TRANSPORT_URL,
@@ -373,7 +377,7 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const downloadNote = async () => {
     setDownloadLoading(true);
-    const { WebClient, Note } = await import("@demox-labs/miden-sdk");
+    const { WebClient, Note } = await import("@miden-sdk/miden-sdk");
     if (!note) return;
     const client = await WebClient.createClient(RPC_ENDPOINT);
     try {

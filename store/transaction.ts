@@ -1,6 +1,5 @@
 /// the transaction store
 import { FAUCET_ID } from "@/lib/constants";
-import { time } from "console";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { enableMapSet } from "immer";
@@ -25,7 +24,10 @@ export interface TransactionStore {
   };
   nids: Set<string>;
   loadTransactions: (
-    record: { tr: any; inputNotes: any | undefined }[],
+    record: {
+      tr: import("@miden-sdk/miden-sdk").TransactionRecord;
+      inputNotes: import("@miden-sdk/miden-sdk").InputNoteRecord[] | undefined;
+    }[],
   ) => Promise<void>;
 }
 
@@ -33,8 +35,8 @@ function transactionRecordToUITransaction({
   tr,
   inputNotes,
 }: {
-  tr: any;
-  inputNotes: import("@demox-labs/miden-sdk").InputNoteRecord[] | undefined;
+  tr: import("@miden-sdk/miden-sdk").TransactionRecord;
+  inputNotes: import("@miden-sdk/miden-sdk").InputNoteRecord[] | undefined;
 }): UITransaction[] {
   if (inputNotes === undefined || inputNotes.length === 0) {
     const outputNotes = tr

@@ -63,7 +63,7 @@ export const createMidenSdkStore = () =>
         });
 
         try {
-          const { WebClient } = await import("@demox-labs/miden-sdk");
+          const { WebClient } = await import("@miden-sdk/miden-sdk");
           const client = await WebClient.createClient(RPC_ENDPOINT);
           set((state) => {
             state.error = null;
@@ -126,7 +126,7 @@ export const createMidenSdkStore = () =>
         const { setAccount, error } = get();
 
         const { AccountStorageMode, WebClient, AccountInterface, Address } =
-          await import("@demox-labs/miden-sdk");
+          await import("@miden-sdk/miden-sdk");
         if (!(client instanceof WebClient)) {
           throw new Error("Miden SDK client not initialized");
         }
@@ -184,7 +184,7 @@ export const createMidenSdkStore = () =>
 
       createNewAccount: async () => {
         const { WebClient, AccountStorageMode } = await import(
-          "@demox-labs/miden-sdk"
+          "@miden-sdk/miden-sdk"
         );
         const NID = await NETWORK_ID();
         const client = await WebClient.createClient(RPC_ENDPOINT);

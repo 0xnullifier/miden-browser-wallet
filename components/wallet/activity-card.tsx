@@ -141,7 +141,9 @@ export function ActivityCardList() {
   const loadTransactions = useTransactionStore(
     (state) => state.loadTransactions,
   );
-  const clientRef = useRef<any | null>(null);
+  const clientRef = useRef<import("@miden-sdk/miden-sdk").WebClient | null>(
+    null,
+  );
   const account = useMidenSdkStore((state) => state.account);
   const blockNum = useMidenSdkStore((state) => state.blockNum);
   const [clientInitialized, setClientInitialized] = useState(false);
@@ -149,7 +151,7 @@ export function ActivityCardList() {
 
   useEffect(() => {
     const initClient = async () => {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
       const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
       clientInstance.terminate();
       clientRef.current = clientInstance;
@@ -173,33 +175,35 @@ export function ActivityCardList() {
 
     const fetchTransactions = async () => {
       try {
-        const { TransactionFilter, NoteFilter, NoteFilterTypes, WebClient } =
-          await import("@demox-labs/miden-sdk");
-        if (clientRef.current instanceof WebClient) {
-          const allTransactions = await clientRef.current.getTransactions(
-            TransactionFilter.all(),
-          );
-          const Nid = await NETWORK_ID();
-          const transactionRecords = allTransactions.filter(
-            (tx) => tx.accountId().toBech32(Nid, 0) === account,
-          );
-          const inputNotes = await clientRef.current.getInputNotes(
-            new NoteFilter(NoteFilterTypes.All),
-          );
-          const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
-            if (tr.outputNotes().notes().length > 0) {
-              return { tr, inputNotes: undefined };
-            } else {
-              const inputNotesForTr = inputNotes.filter(
-                (note) => note.consumerTransactionId() === tr.id().toHex(),
-              );
-              return { tr, inputNotes: inputNotesForTr };
-            }
-          });
-          await loadTransactions(zippedInputeNotesAndTr);
-        } else {
-          console.error("wrong client");
-        }
+        const {
+          TransactionFilter,
+          NoteFilter,
+          NoteFilterTypes,
+          Address,
+          AccountInterface,
+        } = await import("@miden-sdk/miden-sdk");
+        const allTransactions = await clientRef.current.getTransactions(
+          TransactionFilter.all(),
+        );
+        const transactionRecords = allTransactions.filter(
+          (tx) =>
+            tx.accountId().toString() ===
+            Address.fromBech32(account).accountId().toString(),
+        );
+        const inputNotes = await clientRef.current.getInputNotes(
+          new NoteFilter(NoteFilterTypes.All),
+        );
+        const zippedInputeNotesAndTr = transactionRecords.map((tr) => {
+          if (tr.outputNotes().notes().length > 0) {
+            return { tr, inputNotes: undefined };
+          } else {
+            const inputNotesForTr = inputNotes.filter(
+              (note) => note.consumerTransactionId() === tr.id().toHex(),
+            );
+            return { tr, inputNotes: inputNotesForTr };
+          }
+        });
+        await loadTransactions(zippedInputeNotesAndTr);
       } catch (error) {
         console.error("Error loading transactions:", error);
       }
@@ -218,7 +222,6 @@ export function ActivityCardList() {
       const dateB = new Date(b);
       return dateB.getTime() - dateA.getTime();
     });
-    console.log(sorted);
     const dateOffset = 34;
 
     if (transactions[sorted[0]].length < 3) {
@@ -279,12 +282,12 @@ export function ActivityCardList() {
         >
           <div>
             {sortedDates.map((date, index) => (
-              <>
+              <div key={index}>
                 <div
                   className={`flex items-center gap-2 border-border ${index == 0 ? "border-b-[0.5px]" : "border-y-[0.5px]"} h-[34px] px-[26px]`}
                 >
                   <div
-                    key={date}
+                    key={index}
                     className="text-center bg-[#F9F9F9] px-2 py-1 text-[10px] border-border border-[0.5px] rounded-[3px] min-w-[34px] h-[17px] flex items-center font-medium border-neutral-400 dark:border-muted"
                   >
                     {date}
@@ -299,7 +302,7 @@ export function ActivityCardList() {
                       last={index == txToDisplay.length - 1}
                     />
                   ))}
-              </>
+              </div>
             ))}
           </div>
         </ScrollArea>

@@ -5,7 +5,7 @@ import { useEffect } from "react";
 export default function ExportDebugPage() {
   useEffect(() => {
     async function exportStoreAndSaveToJsonFile() {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
       const client = await WebClient.createClient();
       const storeData = await client.exportStore();
       const dataStr = JSON.stringify(storeData, null, 2);

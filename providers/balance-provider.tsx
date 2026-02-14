@@ -51,7 +51,7 @@ export const useObserveBalance = () => {
 
   useEffect(() => {
     const initClient = async () => {
-      const { WebClient } = await import("@demox-labs/miden-sdk");
+      const { WebClient } = await import("@miden-sdk/miden-sdk");
       const clientInstance = await WebClient.createClient(
         RPC_ENDPOINT,
         PRIVATE_NOTE_TRANSPORT_URL,

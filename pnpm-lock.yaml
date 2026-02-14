@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@demox-labs/miden-sdk':
-        specifier: 0.12.5
-        version: 0.12.5(tslib@2.8.1)(typescript@5.8.3)
+      '@miden-sdk/miden-sdk':
+        specifier: ^0.13.0
+        version: 0.13.0(tslib@2.8.1)(typescript@5.8.3)
       '@opennextjs/cloudflare':
         specifier: ^1.14.7
         version: 1.14.7(next@16.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.54.0)
@@ -129,6 +129,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.6)
+      baseline-browser-mapping:
+        specifier: ^2.9.19
+        version: 2.9.19
       eslint:
         specifier: ^9
         version: 9.31.0(jiti@2.4.2)
@@ -567,9 +570,6 @@ packages:
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
-
-  '@demox-labs/miden-sdk@0.12.5':
-    resolution: {integrity: sha512-Oq+MKObtOEY3aro+q1coVSc2RKrIycWbz9hBvnxqIlUkHzn6iL8X4+TG8t14co03cyuVt1dz1F13w0ScQSBMuA==}
 
   '@dotenvx/dotenvx@1.31.0':
     resolution: {integrity: sha512-GeDxvtjiRuoyWVU9nQneId879zIyNdL05bS7RKiqMkfBSKpHMWHLoRyRqjYWLaXmX/llKO1hTlqHDmatkQAjPA==}
@@ -1244,6 +1244,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
+
+  '@miden-sdk/miden-sdk@0.13.0':
+    resolution: {integrity: sha512-N0qUCZW9Dvk3Oqj37IrGmm0b0v3Nq5qHsX3BtQIzZIwDXKXKPBxy/0lO40oCwDtwI8AfriZQyMLbJR81Fo4Vpg==}
 
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
@@ -2578,6 +2581,10 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  baseline-browser-mapping@2.9.19:
+    resolution: {integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==}
+    hasBin: true
+
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
@@ -2859,8 +2866,8 @@ packages:
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
 
-  dexie@4.2.1:
-    resolution: {integrity: sha512-Ckej0NS6jxQ4Po3OrSQBFddayRhTCic2DoCAG5zacOfOVB9P2Q5Xc5uL/nVa7ZVs+HdMnvUPzLFCB/JwpB6Csg==}
+  dexie@4.3.0:
+    resolution: {integrity: sha512-5EeoQpJvMKHe6zWt/FSIIuRa3CWlZeIl6zKXt+Lz7BU6RoRRLgX9dZEynRfXrkLcldKYCBiz7xekTEylnie1Ug==}
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
@@ -3300,6 +3307,7 @@ packages:
   glob@11.1.0:
     resolution: {integrity: sha512-vuNwKSaKiqm7g0THUBu2x7ckSs3XJLXE+2ssL7/MfTGPLLcrJQ/4Uq1CjPTtO5cCIiRxqvN6Twy1qOwhL0Xjcw==}
     engines: {node: 20 || >=22}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@12.0.0:
@@ -5808,16 +5816,6 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@demox-labs/miden-sdk@0.12.5(tslib@2.8.1)(typescript@5.8.3)':
-    dependencies:
-      '@rollup/plugin-typescript': 12.3.0(tslib@2.8.1)(typescript@5.8.3)
-      dexie: 4.2.1
-      glob: 11.1.0
-    transitivePeerDependencies:
-      - rollup
-      - tslib
-      - typescript
-
   '@dotenvx/dotenvx@1.31.0':
     dependencies:
       commander: 11.1.0
@@ -6292,6 +6290,16 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
+
+  '@miden-sdk/miden-sdk@0.13.0(tslib@2.8.1)(typescript@5.8.3)':
+    dependencies:
+      '@rollup/plugin-typescript': 12.3.0(tslib@2.8.1)(typescript@5.8.3)
+      dexie: 4.3.0
+      glob: 11.1.0
+    transitivePeerDependencies:
+      - rollup
+      - tslib
+      - typescript
 
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:
@@ -7838,6 +7846,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  baseline-browser-mapping@2.9.19: {}
+
   binary-extensions@2.3.0: {}
 
   blake3-wasm@2.1.5: {}
@@ -8104,7 +8114,7 @@ snapshots:
 
   detect-node-es@1.1.0: {}
 
-  dexie@4.2.1: {}
+  dexie@4.3.0: {}
 
   didyoumean@1.2.2: {}
 
