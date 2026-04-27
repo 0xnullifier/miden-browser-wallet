@@ -1,5 +1,5 @@
 /// the transaction store
-import { FAUCET_ID } from "@/lib/constants";
+import { getCachedFaucetId, getFaucetId } from "@/lib/constants";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { enableMapSet } from "immer";
@@ -96,8 +96,10 @@ function transactionRecordToUITransaction({
       }
       // we know that there will be only one input note for incoming transaction
       const statusObject = tr.transactionStatus();
+      const cachedFaucetId = getCachedFaucetId();
       const transactionType =
-        inputNote.metadata()?.sender().toString() === FAUCET_ID.toString()
+        cachedFaucetId &&
+        inputNote.metadata()?.sender().toString() === cachedFaucetId
           ? "Faucet"
           : "Incoming";
       const faucetId = inputNote
@@ -134,6 +136,7 @@ export const createTransactionStore = () =>
       loadTransactions: async (record) => {
         set({ loading: true });
         try {
+          await getFaucetId();
           for (const rec of record) {
             const uiTransactions = transactionRecordToUITransaction(rec);
             for (const tx of uiTransactions) {

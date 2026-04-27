@@ -4,8 +4,34 @@ export const BASE_API_URL =
     ? "http://localhost:8000"
     : "https://api.midenbrowserwallet.com";
 export const MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY = "miden-web-wallet-v14.0.0";
-export const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID;
+export const FAUCET_SYMBOL = "MDN";
 export const DECIMALS = 8;
+export const FAUCET_ID_API = `${BASE_API_URL}/faucet-id`;
+export const UNKNOWN_FAUCET_ID = "unknown";
+
+let cachedFaucetId: string | undefined;
+let inflightFaucetIdPromise: Promise<string> | undefined;
+export const getFaucetId = async (): Promise<string> => {
+  if (cachedFaucetId) return cachedFaucetId;
+  if (!inflightFaucetIdPromise) {
+    inflightFaucetIdPromise = fetch(FAUCET_ID_API)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`faucet-id ${r.status}`);
+        const id = (await r.json()) as string;
+        cachedFaucetId = id;
+        return id;
+      })
+      .catch((err) => {
+        console.error("Failed to fetch faucet id, falling back:", err);
+        return UNKNOWN_FAUCET_ID;
+      })
+      .finally(() => {
+        inflightFaucetIdPromise = undefined;
+      });
+  }
+  return inflightFaucetIdPromise;
+};
+export const getCachedFaucetId = (): string | undefined => cachedFaucetId;
 export const RPC_ENDPOINT = devnet
   ? "https://rpc.devnet.miden.io"
   : "https://rpc.testnet.miden.io";

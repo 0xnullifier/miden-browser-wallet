@@ -1,10 +1,12 @@
 import {
   DECIMALS,
   FAUCET_API_ENDPOINT,
-  FAUCET_ID,
+  FAUCET_SYMBOL,
   METADATA_CACHE_KEY,
   RPC_ENDPOINT,
   TX_PROVER_ENDPOINT,
+  UNKNOWN_FAUCET_ID,
+  getFaucetId,
 } from "@/lib/constants";
 import axios from "axios";
 import { create } from "zustand";
@@ -38,9 +40,9 @@ export const createBalanceStore = () =>
     balances: {},
     faucets: [
       {
-        symbol: "MDN",
+        symbol: FAUCET_SYMBOL,
         decimals: DECIMALS,
-        address: FAUCET_ID,
+        address: UNKNOWN_FAUCET_ID,
       },
     ],
     loadBalance: async (client, _accountId) => {
@@ -48,6 +50,25 @@ export const createBalanceStore = () =>
       if (client instanceof WasmWebClient) {
         const address = Address.fromBech32(_accountId);
         const accountId = address.accountId();
+        const faucetId = await getFaucetId();
+        if (!get().faucets.some((f) => f.address === faucetId)) {
+          set((state) => {
+            const placeholderIdx = state.faucets.findIndex(
+              (f) => f.address === UNKNOWN_FAUCET_ID,
+            );
+            const entry = {
+              symbol: FAUCET_SYMBOL,
+              decimals: DECIMALS,
+              address: faucetId,
+            };
+            if (placeholderIdx !== -1) {
+              const next = [...state.faucets];
+              next[placeholderIdx] = entry;
+              return { faucets: next };
+            }
+            return { faucets: [...state.faucets, entry] };
+          });
+        }
         const { faucets, consumingLoading } = get();
         set({ loading: true });
         const accountRecord = await client.getAccount(accountId);
@@ -76,8 +97,8 @@ export const createBalanceStore = () =>
               balances[asset.faucetId().toString()] = balance;
             }),
         );
-        if (balances[FAUCET_ID] === undefined) {
-          balances[FAUCET_ID] = 0;
+        if (balances[faucetId] === undefined) {
+          balances[faucetId] = 0;
         }
         set({ loading: false, balances });
         await client.fetchPrivateNotes();

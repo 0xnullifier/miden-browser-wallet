@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SendCard } from "@/components/wallet/send-card";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { motion } from "motion/react";
 import { FaucetInfo } from "@/store/balance";
 import { useBalanceStore } from "@/providers/balance-provider";
+import { UNKNOWN_FAUCET_ID } from "@/lib/constants";
 
 export default function WalletInterface() {
   const isLoading = useMidenSdkStore((state) => state.isLoading);
@@ -23,6 +24,15 @@ export default function WalletInterface() {
   const [toShow, setToShow] = useState<toShowType>("activity");
   const faucets = useBalanceStore((state) => state.faucets);
   const [faucet, setFaucet] = useState<FaucetInfo>(faucets[0]);
+  useEffect(() => {
+    if (
+      faucet?.address === UNKNOWN_FAUCET_ID &&
+      faucets[0] &&
+      faucets[0].address !== UNKNOWN_FAUCET_ID
+    ) {
+      setFaucet(faucets[0]);
+    }
+  }, [faucets, faucet]);
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false);
 
   const { isTimeoutReached, elapsedTime, resetTimeout } = useLoadingTimeout(
