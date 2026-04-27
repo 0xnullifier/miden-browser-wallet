@@ -9,8 +9,6 @@ import { BackgroundProcesses } from "@/components/background-process";
 import { BalanceProvider } from "@/providers/balance-provider";
 import { TransactionProviderC } from "@/providers/transaction-provider";
 import { Toaster } from "sonner";
-import { WebRtcProvider } from "@/providers/webrtc-provider";
-import { ReceiverProvider } from "@/providers/receiver-provider";
 import { Footer } from "@/components/footer";
 
 const inter = Inter({
@@ -57,15 +55,11 @@ export default function RootLayout({
           <MidenSdkProvider>
             <BalanceProvider>
               <TransactionProviderC>
-                <WebRtcProvider>
-                  <ReceiverProvider>
-                    <BackgroundProcesses />
-                    <Navbar />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                    <Toaster />
-                  </ReceiverProvider>
-                </WebRtcProvider>
+                <BackgroundProcesses />
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <Footer />
+                <Toaster />
               </TransactionProviderC>
             </BalanceProvider>
           </MidenSdkProvider>

@@ -47,7 +47,6 @@ export const BASE_URL =
   typeof window !== "undefined"
     ? `${window.location.protocol}//${window.location.host}`
     : "http://localhost:5173";
-export const WEBSOCKET_URL = "wss://api.midenbrowserwallet.com/signaling";
 export const TX_PROVER_ENDPOINT = devnet
   ? "https://tx-prover.devnet.miden.io"
   : "https://tx-prover.testnet.miden.io";
