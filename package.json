@@ -13,7 +13,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@miden-sdk/miden-sdk": "^0.13.0",
+    "@miden-sdk/miden-sdk": "^0.14.4",
     "@opennextjs/cloudflare": "^1.14.7",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-checkbox": "^1.3.2",

@@ -11,10 +11,9 @@ export default function ImportDebugPage() {
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
-          const json = JSON.parse(e.target?.result as string);
-          const { WebClient } = await import("@miden-sdk/miden-sdk");
-          const client = await WebClient.createClient();
-          await client.forceImportStore(json, "MidenClientDB_mtst");
+          const dump = e.target?.result as string;
+          const { importStore } = await import("@miden-sdk/miden-sdk");
+          await importStore("MidenClientDB_mtst", dump);
           redirect("/debug");
         } catch (error) {
           console.error("Error:", error);

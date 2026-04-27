@@ -4,7 +4,7 @@ import { FaucetInfo } from "@/store/balance";
 import { submitTransactionWithRetry } from "./helper";
 
 export async function send(
-  client: import("@miden-sdk/miden-sdk").WebClient,
+  client: import("@miden-sdk/miden-sdk").WasmWebClient,
   from: string,
   to: string,
   amount: number,
@@ -19,11 +19,10 @@ export async function send(
     Address,
     NoteType,
     Note,
+    NoteArray,
     NoteAssets,
     FungibleAsset,
     TransactionRequestBuilder,
-    MidenArrays,
-    OutputNote,
     NoteAttachment,
     NoteAttachmentScheme,
   } = await import("@miden-sdk/miden-sdk");
@@ -35,12 +34,12 @@ export async function send(
   const noteAssets = new NoteAssets([
     new FungibleAsset(FAUCET_ID, amountInBaseDenom),
   ]);
-  console.log("Note assets:", message); // --- IGNORE ---
+  console.log("Note assets:", message);
   const messageAttachment = NoteAttachment.newWord(
     NoteAttachmentScheme.none(),
     await emptyWord(),
   );
-  console.log("Message attachment:", messageAttachment); // --- IGNORE ---
+  console.log("Message attachment:", messageAttachment);
   const p2idNote = Note.createP2IDNote(
     accountId,
     toAccountId,
@@ -48,9 +47,10 @@ export async function send(
     noteType,
     messageAttachment,
   );
-  const outputP2ID = OutputNote.full(p2idNote);
+  const ownOutputs = new NoteArray();
+  ownOutputs.push(p2idNote);
   let sendTxRequest = new TransactionRequestBuilder()
-    .withOwnOutputNotes(new MidenArrays.OutputNoteArray([outputP2ID]))
+    .withOwnOutputNotes(ownOutputs)
     .build();
   let txResult = await submitTransactionWithRetry(
     sendTxRequest,
@@ -63,15 +63,14 @@ export async function send(
 
 export async function importNote(noteBytes: any, receiver: string) {
   const {
-    WebClient,
+    WasmWebClient,
     Address,
     Note,
     NoteAndArgs,
     NoteAndArgsArray,
     TransactionRequestBuilder,
   } = await import("@miden-sdk/miden-sdk");
-  const client = new WebClient();
-  client.createClient(RPC_ENDPOINT);
+  const client = await WasmWebClient.createClient(RPC_ENDPOINT);
   try {
     const p2idNote = Note.deserialize(noteBytes);
     const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
@@ -94,9 +93,8 @@ export async function importNote(noteBytes: any, receiver: string) {
 }
 
 export async function importNoteFile(noteBytes: any) {
-  const { NoteFile, WebClient } = await import("@miden-sdk/miden-sdk");
-  const client = new WebClient();
-  client.createClient(RPC_ENDPOINT);
+  const { NoteFile, WasmWebClient } = await import("@miden-sdk/miden-sdk");
+  const client = await WasmWebClient.createClient(RPC_ENDPOINT);
   try {
     const prevCount = (await client.getConsumableNotes()).length;
     let afterCount = prevCount;
@@ -119,21 +117,19 @@ export async function sendToMany(
   receipients: { to: string; amount: number; faucet: FaucetInfo }[],
 ) {
   const {
-    WebClient,
+    WasmWebClient,
     Note,
+    NoteArray,
     AccountId,
     Address,
     NoteAssets,
     FungibleAsset,
     NoteType,
-    OutputNote,
-    MidenArrays,
     TransactionRequestBuilder,
     NoteAttachment,
     NoteAttachmentScheme,
   } = await import("@miden-sdk/miden-sdk");
-  const client = new WebClient();
-  client.createClient(RPC_ENDPOINT);
+  const client = await WasmWebClient.createClient(RPC_ENDPOINT);
 
   const emptyNoteAttachment = NoteAttachment.newWord(
     NoteAttachmentScheme.none(),
@@ -141,24 +137,23 @@ export async function sendToMany(
   );
   try {
     const senderAccountId = Address.fromBech32(sender).accountId();
-    const notes = new MidenArrays.OutputNoteArray(
-      receipients.map(({ to, amount, faucet }) => {
-        const amountInBaseDenom = BigInt(amount * 10 ** faucet.decimals);
-        const toAccountId = Address.fromBech32(to).accountId();
-        const faucetId = AccountId.fromHex(faucet.address);
-        const noteAssets = new NoteAssets([
-          new FungibleAsset(faucetId, amountInBaseDenom),
-        ]);
-        const p2idNote = Note.createP2IDNote(
-          senderAccountId,
-          toAccountId,
-          noteAssets,
-          NoteType.Public,
-          emptyNoteAttachment,
-        );
-        return OutputNote.full(p2idNote);
-      }),
-    );
+    const notes = new NoteArray();
+    for (const { to, amount, faucet } of receipients) {
+      const amountInBaseDenom = BigInt(amount * 10 ** faucet.decimals);
+      const toAccountId = Address.fromBech32(to).accountId();
+      const faucetId = AccountId.fromHex(faucet.address);
+      const noteAssets = new NoteAssets([
+        new FungibleAsset(faucetId, amountInBaseDenom),
+      ]);
+      const p2idNote = Note.createP2IDNote(
+        senderAccountId,
+        toAccountId,
+        noteAssets,
+        NoteType.Public,
+        emptyNoteAttachment,
+      );
+      notes.push(p2idNote);
+    }
     const txRequest = new TransactionRequestBuilder()
       .withOwnOutputNotes(notes)
       .build();

@@ -53,8 +53,8 @@ export function useInitAndPollSyncState() {
     initializeSdk({});
 
     const initClient = async () => {
-      const { WebClient } = await import("@miden-sdk/miden-sdk");
-      const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
+      const { WasmWebClient } = await import("@miden-sdk/miden-sdk");
+      const clientInstance = await WasmWebClient.createClient(RPC_ENDPOINT);
       setClient(clientInstance);
     };
     initClient();

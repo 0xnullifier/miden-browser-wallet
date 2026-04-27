@@ -63,8 +63,8 @@ export const createMidenSdkStore = () =>
         });
 
         try {
-          const { WebClient } = await import("@miden-sdk/miden-sdk");
-          const client = await WebClient.createClient(RPC_ENDPOINT);
+          const { WasmWebClient } = await import("@miden-sdk/miden-sdk");
+          const client = await WasmWebClient.createClient(RPC_ENDPOINT);
           set((state) => {
             state.error = null;
           });
@@ -125,9 +125,13 @@ export const createMidenSdkStore = () =>
       initializeAccount: async (client: any) => {
         const { setAccount, error } = get();
 
-        const { AccountStorageMode, WebClient, AccountInterface, Address } =
-          await import("@miden-sdk/miden-sdk");
-        if (!(client instanceof WebClient)) {
+        const {
+          AccountStorageMode,
+          WasmWebClient,
+          AccountInterface,
+          Address,
+        } = await import("@miden-sdk/miden-sdk");
+        if (!(client instanceof WasmWebClient)) {
           throw new Error("Miden SDK client not initialized");
         }
         const accountID = localStorage.getItem(
@@ -183,11 +187,11 @@ export const createMidenSdkStore = () =>
       },
 
       createNewAccount: async () => {
-        const { WebClient, AccountStorageMode } = await import(
+        const { WasmWebClient, AccountStorageMode } = await import(
           "@miden-sdk/miden-sdk"
         );
         const NID = await NETWORK_ID();
-        const client = await WebClient.createClient(RPC_ENDPOINT);
+        const client = await WasmWebClient.createClient(RPC_ENDPOINT);
         const { setAccount } = get();
         if (!client) {
           throw new Error(

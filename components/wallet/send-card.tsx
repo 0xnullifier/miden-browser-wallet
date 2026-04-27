@@ -106,8 +106,8 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const processTxAfterConnection = async () => {
     if (!account) return;
-    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
-    if (clientRef.current instanceof WebClient) {
+    const { WasmWebClient, Address } = await import("@miden-sdk/miden-sdk");
+    if (clientRef.current instanceof WasmWebClient) {
       try {
         const { tx, note } = await send(
           clientRef.current,
@@ -146,8 +146,8 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const sendPrivateTx = async () => {
     if (!account) return;
-    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
-    if (clientRef.current instanceof WebClient) {
+    const { WasmWebClient, Address } = await import("@miden-sdk/miden-sdk");
+    if (clientRef.current instanceof WasmWebClient) {
       try {
         const { tx, note } = await send(
           clientRef.current,
@@ -327,8 +327,8 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
 
   const onSend = async () => {
     setLoading(true);
-    const { WebClient } = await import("@miden-sdk/miden-sdk");
-    clientRef.current = await WebClient.createClient(
+    const { WasmWebClient } = await import("@miden-sdk/miden-sdk");
+    clientRef.current = await WasmWebClient.createClient(
       RPC_ENDPOINT,
       PRIVATE_NOTE_TRANSPORT_URL,
     );
@@ -377,13 +377,15 @@ export function SendCard({ selectedFaucet }: { selectedFaucet: FaucetInfo }) {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const downloadNote = async () => {
     setDownloadLoading(true);
-    const { WebClient, Note } = await import("@miden-sdk/miden-sdk");
+    const { WasmWebClient, Note, NoteExportFormat } = await import(
+      "@miden-sdk/miden-sdk"
+    );
     if (!note) return;
-    const client = await WebClient.createClient(RPC_ENDPOINT);
+    const client = await WasmWebClient.createClient(RPC_ENDPOINT);
     try {
       await new Promise((resolve) => setTimeout(resolve, 10000));
       const noteBytes = (
-        await client.exportNoteFile(note.id().toString(), "Full")
+        await client.exportNoteFile(note.id().toString(), NoteExportFormat.Full)
       ).serialize();
 
       const uint8Array = new Uint8Array(noteBytes);

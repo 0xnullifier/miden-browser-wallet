@@ -3,7 +3,7 @@ export const BASE_API_URL =
   process.env.NODE_ENV == "development"
     ? "http://localhost:8000"
     : "https://api.midenbrowserwallet.com";
-export const MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY = "miden-web-wallet-v11.1.0";
+export const MIDEN_WEB_WALLET_LOCAL_STORAGE_KEY = "miden-web-wallet-v14.0.0";
 export const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID;
 export const DECIMALS = 8;
 export const RPC_ENDPOINT = devnet
@@ -48,4 +48,4 @@ export const NETWORK_ID = async () => {
   return devnet ? NetworkId.devnet() : NetworkId.testnet();
 };
 export const PRIVATE_NOTE_TRANSPORT_URL = "https://transport.miden.io";
-export const METADATA_CACHE_KEY = "browser-wallet-metadata-cache-v13";
+export const METADATA_CACHE_KEY = "browser-wallet-metadata-cache-v14";

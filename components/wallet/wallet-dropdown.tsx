@@ -59,8 +59,8 @@ export function WalletDropdown() {
       console.error("No account found to export private key");
       return;
     }
-    const { WebClient, Address } = await import("@miden-sdk/miden-sdk");
-    const client = await WebClient.createClient(RPC_ENDPOINT);
+    const { WasmWebClient, Address } = await import("@miden-sdk/miden-sdk");
+    const client = await WasmWebClient.createClient(RPC_ENDPOINT);
 
     try {
       // returns a array of bytes
@@ -97,10 +97,9 @@ export function WalletDropdown() {
   };
 
   const importAccount = async () => {
-    const { WebClient, Address, AccountInterface, AccountFile } = await import(
-      "@miden-sdk/miden-sdk"
-    );
-    const client = await WebClient.createClient(RPC_ENDPOINT);
+    const { WasmWebClient, Address, AccountInterface, AccountFile } =
+      await import("@miden-sdk/miden-sdk");
+    const client = await WasmWebClient.createClient(RPC_ENDPOINT);
     setImportLoading(true);
     if (!importStr || importStr.length === 0) {
       toast.error("Please enter a valid account string", {

@@ -44,8 +44,8 @@ export const createBalanceStore = () =>
       },
     ],
     loadBalance: async (client, _accountId) => {
-      const { Address, WebClient } = await import("@miden-sdk/miden-sdk");
-      if (client instanceof WebClient) {
+      const { Address, WasmWebClient } = await import("@miden-sdk/miden-sdk");
+      if (client instanceof WasmWebClient) {
         const address = Address.fromBech32(_accountId);
         const accountId = address.accountId();
         const { faucets, consumingLoading } = get();
@@ -88,8 +88,8 @@ export const createBalanceStore = () =>
         } else if (!consumingLoading) {
           set({ consumingLoading: true });
           // if consumable notes are found we consume them but terminate the client after consuming
-          const { WebClient } = await import("@miden-sdk/miden-sdk");
-          const newClient = await WebClient.createClient(RPC_ENDPOINT);
+          const { WasmWebClient } = await import("@miden-sdk/miden-sdk");
+          const newClient = await WasmWebClient.createClient(RPC_ENDPOINT);
           try {
             toast.info(
               `Found ${consumableNotes.length} pending notes to consume, consuming...`,

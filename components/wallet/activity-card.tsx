@@ -141,7 +141,7 @@ export function ActivityCardList() {
   const loadTransactions = useTransactionStore(
     (state) => state.loadTransactions,
   );
-  const clientRef = useRef<import("@miden-sdk/miden-sdk").WebClient | null>(
+  const clientRef = useRef<import("@miden-sdk/miden-sdk").WasmWebClient | null>(
     null,
   );
   const account = useMidenSdkStore((state) => state.account);
@@ -151,8 +151,8 @@ export function ActivityCardList() {
 
   useEffect(() => {
     const initClient = async () => {
-      const { WebClient } = await import("@miden-sdk/miden-sdk");
-      const clientInstance = await WebClient.createClient(RPC_ENDPOINT);
+      const { WasmWebClient } = await import("@miden-sdk/miden-sdk");
+      const clientInstance = await WasmWebClient.createClient(RPC_ENDPOINT);
       clientInstance.terminate();
       clientRef.current = clientInstance;
       setClientInitialized(true);

@@ -6,13 +6,12 @@ export async function submitTransactionWithRetry(
   accountId: any,
   delegate: boolean = true,
 ) {
-  const { TransactionRequest, WebClient, AccountId, TransactionProver } =
+  const { TransactionRequest, WasmWebClient, AccountId, TransactionProver } =
     await import("@miden-sdk/miden-sdk");
   const prover = TransactionProver.newRemoteProver(TX_PROVER_ENDPOINT);
-  // just to get types
   if (
     transactionRequest instanceof TransactionRequest &&
-    client instanceof WebClient &&
+    client instanceof WasmWebClient &&
     accountId instanceof AccountId
   ) {
     const executedTransaction = await client.executeTransaction(
@@ -22,18 +21,19 @@ export async function submitTransactionWithRetry(
     let provenTx: any;
     if (delegate) {
       try {
-        provenTx = await client.proveTransaction(executedTransaction, prover);
+        provenTx = await client.proveTransactionWithProver(
+          executedTransaction,
+          prover,
+        );
       } catch (error) {
         console.log("proving locally");
-        // prover failed prove locally
-        provenTx = await client.proveTransaction(
+        provenTx = await client.proveTransactionWithProver(
           executedTransaction,
           TransactionProver.newLocalProver(),
         );
       }
     } else {
-      // do not delegate
-      provenTx = await client.proveTransaction(
+      provenTx = await client.proveTransactionWithProver(
         executedTransaction,
         TransactionProver.newLocalProver(),
       );
